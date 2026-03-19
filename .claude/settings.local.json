@@ -17,7 +17,8 @@
       "Bash(cmd.exe /c \"dir C:\\\\Users\\\\ADITYA\\\\Downloads\\\\node-installer.msi\")",
       "Bash(cmd.exe /c \"curl -L -o C:\\\\Users\\\\ADITYA\\\\Downloads\\\\node-installer.msi https://nodejs.org/dist/v20.17.0/node-v20.17.0-x64.msi\")",
       "Bash(cmd.exe /c \"dir C:\\\\Users\\\\ADITYA\\\\Downloads\\\\node-installer.msi 2>&1 && echo SIZE_CHECK_DONE\")",
-      "Bash(powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \":*)"
+      "Bash(powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \":*)",
+      "Bash(npm run:*)"
     ]
   }
 }
