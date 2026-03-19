@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Growth OS</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#F8F7F4;font-family:'DM Sans',sans-serif;color:#0F0F0F}
+    .serif{font-family:'DM Serif Display',serif}
+    .card{background:#fff;border:1px solid #E8E4DE;border-radius:14px;padding:24px}
+    .card-sm{background:#fff;border:1px solid #E8E4DE;border-radius:12px;padding:18px 20px}
+    .tab-bar{display:flex;gap:2px;background:#E8E4DE;border-radius:10px;padding:3px}
+    .tab{padding:8px 18px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#8896AA;transition:all .2s;white-space:nowrap}
+    .tab.active{background:#fff;color:#0F0F0F;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+    .kpi-up{color:#1A6B4A;background:#E8F3EE;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px}
+    .kpi-down{color:#C53030;background:#FFF5F5;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px}
+    .kpi-flat{color:#D97706;background:#FEF3C7;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px}
+    .drop-zone{border:2px dashed #E8E4DE;border-radius:14px;padding:40px;text-align:center;cursor:pointer;transition:all .2s}
+    .drop-zone:hover{border-color:#1A6B4A;background:#E8F3EE}
+    input[type=range]{-webkit-appearance:none;height:4px;background:#E8E4DE;border-radius:2px;width:100%;outline:none;cursor:pointer}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#1A6B4A;cursor:pointer}
+    .insight-box{background:linear-gradient(135deg,#F0F7F4 0%,#EBF0FF 100%);border:1px solid #C6DDD4;border-radius:14px;padding:20px;line-height:1.7;font-size:14px}
+    .insight-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#1A6B4A;margin-bottom:8px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{text-align:left;font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8896AA;padding:8px 12px;border-bottom:2px solid #E8E4DE}
+    td{padding:10px 12px;border-bottom:1px solid #E8E4DE}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#F8F7F4}
+    .btn{padding:10px 22px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;font-size:14px;transition:all .15s}
+    .btn-primary{background:#0F0F0F;color:#fff}
+    .btn-primary:hover{background:#333}
+    .btn-outline{background:transparent;color:#0F0F0F;border:1px solid #E8E4DE}
+    .btn-outline:hover{background:#F8F7F4}
+    .btn-active{background:#E8F3EE;color:#1A6B4A;border:1px solid #1A6B4A}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spinner{width:18px;height:18px;border:2px solid #E8E4DE;border-top-color:#1A6B4A;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .fade-up{animation:fadeUp .4s ease forwards}
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:1000}
+    .modal{background:#fff;border-radius:14px;padding:28px;max-width:400px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,0.15)}
+    .modal p{margin-bottom:20px;font-size:14px;line-height:1.6;color:#4A5568}
+    .modal-buttons{display:flex;gap:12px;justify-content:flex-end}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:#F8F7F4;border:1px solid #E8E4DE;border-radius:20px;cursor:pointer;font-size:12px;transition:all .2s;margin-right:8px;margin-bottom:8px}
+    .pill input{margin:0;cursor:pointer}
+    .pill:hover{border-color:#1A6B4A}
+    .pill.on{background:#E8F3EE;border-color:#1A6B4A}
+    .err{background:#FFF5F5;border:1px solid #C53030;border-radius:8px;padding:12px;font-size:13px;color:#C53030;margin-bottom:12px;line-height:1.6}
+    /* Forecast-specific */
+    .seg-group{display:inline-flex;border:1px solid #E8E4DE;border-radius:8px;overflow:hidden}
+    .seg{padding:7px 16px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:#fff;color:#8896AA;transition:all .15s;font-family:'DM Sans',sans-serif}
+    .seg:not(:last-child){border-right:1px solid #E8E4DE}
+    .seg.active{background:#0F0F0F;color:#fff}
+    .warn-card{border-radius:12px;padding:14px 18px;font-size:13px;line-height:1.6;display:flex;gap:12px;align-items:flex-start}
+    .warn-red{background:#FFF5F5;border:1px solid #FCA5A5}
+    .warn-amber{background:#FEF3C7;border:1px solid #FCD34D}
+    .warn-green{background:#E8F3EE;border:1px solid #6EE7B7}
+    .scenario-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+    .metric-pill{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #E8E4DE;background:#fff;transition:all .2s;font-family:'DM Sans',sans-serif}
+    .metric-pill.active{border-color:#1A6B4A;background:#E8F3EE;color:#1A6B4A}
+    @keyframes shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
+    .skel{background:linear-gradient(90deg,#E8E4DE 25%,#F8F7F4 50%,#E8E4DE 75%);background-size:400px;animation:shimmer 1.4s infinite;border-radius:6px}
+    @media(max-width:640px){
+      .kpi-row{grid-template-columns:1fr 1fr !important}
+      .chart-row,.alloc-row,.opp-row,.fc-grid,.scenario-row{grid-template-columns:1fr !important}
+      .hdr{flex-direction:column !important;height:auto !important;padding:12px 16px !important;gap:10px !important}
+      table{font-size:11px}th,td{padding:6px 8px !important}
+    }
+    @media(min-width:641px) and (max-width:1024px){
+      .kpi-row{grid-template-columns:repeat(3,1fr) !important}
+      .chart-row,.alloc-row,.fc-grid{grid-template-columns:1fr !important}
+      .scenario-row{grid-template-columns:1fr 1fr !important}
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback, useRef, useMemo } = React;
+
+// ── Palette ────────────────────────────────────────────────────────────────
+const CH = ["#1A6B4A","#1E4EAD","#D97706","#9333EA"];
+const C  = { accent:"#1A6B4A", amber:"#D97706", red:"#C53030",
+             blue:"#1E4EAD",   mist:"#8896AA",  rule:"#E8E4DE",
+             paper:"#F8F7F4",  ink:"#0F0F0F" };
+
+// ── Formatters ─────────────────────────────────────────────────────────────
+const safe = n => (!n || isNaN(n) || !isFinite(n)) ? 0 : n;
+const fmt = {
+  inr: n => { n=safe(n); if(Math.abs(n)>=100000) return "₹"+(n/100000).toFixed(1)+"L"; if(Math.abs(n)>=1000) return "₹"+(n/1000).toFixed(1)+"K"; return "₹"+Math.round(n); },
+  pct: (n,d=1) => safe(n).toFixed(d)+"%",
+  x:   (n,d=2) => safe(n).toFixed(d)+"x",
+  num: n => Math.round(safe(n)).toLocaleString("en-IN"),
+  raw: (n,decimals=0) => safe(n).toFixed(decimals),
+};
+
+// ── Sample CSV ─────────────────────────────────────────────────────────────
+const SAMPLE = `date,channel,impressions,clicks,orders,revenue,spend
+2024-01-01,Blinkit,52000,1820,182,54600,9100
+2024-01-01,Zepto,38000,1140,91,27300,5700
+2024-01-01,Meta,210000,4200,168,50400,8400
+2024-01-01,Google,95000,2850,143,42900,7150
+2024-01-08,Blinkit,58000,2088,220,66000,10200
+2024-01-08,Zepto,41000,1312,118,35400,6500
+2024-01-08,Meta,225000,4725,189,56700,9450
+2024-01-08,Google,102000,3162,172,51600,8400
+2024-01-15,Blinkit,61000,2318,248,74400,11200
+2024-01-15,Zepto,44000,1452,132,39600,7100
+2024-01-15,Meta,240000,5040,202,60600,10100
+2024-01-15,Google,108000,3456,190,57000,9200
+2024-01-22,Blinkit,65000,2470,265,79500,12000
+2024-01-22,Zepto,47000,1598,143,42900,7800
+2024-01-22,Meta,255000,5355,215,64500,10750
+2024-01-22,Google,115000,3680,204,61200,9800`;
+
+// ── Flexible Date Parser ────────────────────────────────────────────────────
+// Normalises any common date format → "YYYY-MM-DD"
+const MONTH_MAP = {
+  jan:1,feb:2,mar:3,apr:4,may:5,jun:6,
+  jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
+  january:1,february:2,march:3,april:4,june:6,
+  july:7,august:8,september:9,october:10,november:11,december:12,
+};
+function toISO(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+function normaliseDate(raw) {
+  const s = (raw||"").trim();
+  if(!s) return null;
+
+  // YYYY-MM-DD or YYYY/MM/DD
+  let m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+  if(m){ const [,y,mo,d]=m.map(Number); if(mo>=1&&mo<=12&&d>=1&&d<=31) return toISO(y,mo,d); }
+
+  // DD-MM-YYYY or DD/MM/YYYY or MM/DD/YYYY (ambiguous → prefer DD/MM for Indian context)
+  m = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+  if(m){
+    let [,a,b,y]=m.map(Number);
+    let [d,mo] = a>12 ? [a,b] : b>12 ? [b,a] : [a,b]; // a>12 = definitely day first
+    if(mo>=1&&mo<=12&&d>=1&&d<=31) return toISO(y,mo,d);
+  }
+
+  // DD MMM YYYY  e.g. "15 Jan 2024" or "15-Jan-2024"
+  m = s.match(/^(\d{1,2})[\s\-]([a-zA-Z]+)[\s\-,]*(\d{4})$/);
+  if(m){ const [,d,mStr,y]=m; const mo=MONTH_MAP[mStr.toLowerCase()]; if(mo) return toISO(+y,mo,+d); }
+
+  // MMM DD YYYY  e.g. "Jan 15, 2024" or "January 15 2024"
+  m = s.match(/^([a-zA-Z]+)[\s\-,]+(\d{1,2})[,\s]+(\d{4})$/);
+  if(m){ const [,mStr,d,y]=m; const mo=MONTH_MAP[mStr.toLowerCase()]; if(mo) return toISO(+y,mo,+d); }
+
+  // MMM-YYYY or MMM/YYYY  e.g. "Jan-2024" → treat as 1st of month
+  m = s.match(/^([a-zA-Z]+)[-\/](\d{4})$/);
+  if(m){ const [,mStr,y]=m; const mo=MONTH_MAP[mStr.toLowerCase()]; if(mo) return toISO(+y,mo,1); }
+
+  // Last resort — browser's Date parser (handles ISO 8601 variants)
+  const native = new Date(s);
+  if(!isNaN(native.getTime())){
+    return toISO(native.getFullYear(), native.getMonth()+1, native.getDate());
+  }
+  return null;
+}
+
+// ── CSV Parser ─────────────────────────────────────────────────────────────
+function parseCSV(raw) {
+  const text = raw.trim().replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+  const [header,...lines] = text.split("\n");
+  const keys = header.split(",").map(h=>h.trim());
+  const required = ["date","channel","impressions","clicks","orders","revenue","spend"];
+  const missing = required.filter(r=>!keys.includes(r));
+  if(missing.length) throw new Error("Missing columns: "+missing.join(", "));
+  const rows=[]; const errs=[];
+  lines.forEach((line,i)=>{
+    if(!line.trim()) return;
+    const vals=line.split(",");
+    if(vals.length!==keys.length){errs.push(`Row ${i+2}: column count mismatch`);return;}
+    const obj={}; let ok=true;
+    keys.forEach((k,j)=>{
+      const v=vals[j]?.trim();
+      if(k==="date"){
+        const iso=normaliseDate(v);
+        if(!iso){ errs.push(`Row ${i+2}: unrecognised date "${v}" — try DD/MM/YYYY, Jan 15 2024, etc.`); ok=false; }
+        else obj[k]=iso;
+      }
+      else if(k==="channel"){ if(!v){errs.push(`Row ${i+2}: empty channel`);ok=false;} obj[k]=v; }
+      else{ const n=parseFloat(v); if(isNaN(n)||n<0){errs.push(`Row ${i+2}: ${k} invalid "${v}"`);ok=false;} obj[k]=n; }
+    });
+    if(ok) rows.push(obj);
+  });
+  if(!rows.length) throw new Error(["No valid rows found",...errs].join("\n"));
+  return rows;
+}
+
+// ── Core Metrics ───────────────────────────────────────────────────────────
+function compute(rows){
+  const channels=[...new Set(rows.map(r=>r.channel))];
+  const byChannel=channels.map(ch=>{
+    const r=rows.filter(x=>x.channel===ch);
+    const imp=r.reduce((a,x)=>a+(x.impressions||0),0);
+    const clk=r.reduce((a,x)=>a+(x.clicks||0),0);
+    const ord=r.reduce((a,x)=>a+(x.orders||0),0);
+    const rev=r.reduce((a,x)=>a+(x.revenue||0),0);
+    const spd=r.reduce((a,x)=>a+(x.spend||0),0);
+    return{channel:ch,impressions:imp,clicks:clk,orders:ord,revenue:rev,spend:spd,
+      ctr:imp>0?clk/imp*100:0, cvr:clk>0?ord/clk*100:0,
+      roas:spd>0?rev/spd:0,    cpc:clk>0?spd/clk:0};
+  });
+  const dates=[...new Set(rows.map(r=>r.date))].sort();
+  const byDate=dates.map(d=>{
+    const r=rows.filter(x=>x.date===d);
+    const rev=r.reduce((a,x)=>a+(x.revenue||0),0);
+    const spd=r.reduce((a,x)=>a+(x.spend||0),0);
+    const ord=r.reduce((a,x)=>a+(x.orders||0),0);
+    const clk=r.reduce((a,x)=>a+(x.clicks||0),0);
+    return{date:d.slice(5),fullDate:d,revenue:rev,spend:spd,orders:ord,clicks:clk,
+      cac:ord>0?spd/ord:0, cvr:clk>0?ord/clk*100:0,
+      roas:spd>0?+(rev/spd).toFixed(2):0};
+  });
+  const total={
+    revenue:byChannel.reduce((a,x)=>a+x.revenue,0),
+    spend:  byChannel.reduce((a,x)=>a+x.spend,0),
+    orders: byChannel.reduce((a,x)=>a+x.orders,0),
+    clicks: byChannel.reduce((a,x)=>a+x.clicks,0),
+  };
+  total.roas=total.spend>0?+(total.revenue/total.spend).toFixed(2):0;
+  total.cpo= total.orders>0?+(total.spend/total.orders).toFixed(0):0;
+  const sorted=[...byChannel].sort((a,b)=>b.roas-a.roas);
+  const opps=[];
+  if(sorted.length>=2){
+    const top=sorted[0],bot=sorted[sorted.length-1];
+    if(top.roas-bot.roas>0.5) opps.push({type:"budget",title:"Biggest Budget Opportunity",
+      from:bot.channel,to:top.channel,fromRoas:bot.roas,toRoas:top.roas,
+      potential:Math.round(bot.spend*0.1*top.roas)});
+  }
+  const avgCtr=byChannel.reduce((a,c)=>a+c.ctr,0)/byChannel.length;
+  const bestCtr=byChannel.reduce((a,c)=>c.ctr>a.ctr?c:a,byChannel[0]);
+  if(bestCtr&&bestCtr.ctr>avgCtr) opps.push({type:"ctr",title:"Quick Win This Week",
+    channel:bestCtr.channel,ctr:bestCtr.ctr,cvr:bestCtr.cvr,impact:fmt.inr(bestCtr.revenue*0.04)});
+  return{channels,byChannel,byDate,total,opps};
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ── STATISTICAL ENGINE ────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Weighted linear regression → {slope, intercept, r2, stderr, xBar, sxx}
+function linReg(pts, weights) {
+  const n = pts.length;
+  if(n < 2) return {slope:0, intercept:pts[0]?.y||0, r2:0, stderr:0, xBar:0, sxx:1};
+  const w = weights || Array(n).fill(1);
+  const sw   = w.reduce((a,x)=>a+x, 0);
+  const swx  = pts.reduce((a,p,i)=>a+w[i]*p.x, 0);
+  const swy  = pts.reduce((a,p,i)=>a+w[i]*p.y, 0);
+  const swxy = pts.reduce((a,p,i)=>a+w[i]*p.x*p.y, 0);
+  const swx2 = pts.reduce((a,p,i)=>a+w[i]*p.x*p.x, 0);
+  const denom = sw*swx2 - swx*swx;
+  if(Math.abs(denom)<1e-10) return {slope:0, intercept:swy/sw, r2:0, stderr:0, xBar:swx/sw, sxx:1};
+  const slope = (sw*swxy - swx*swy) / denom;
+  const intercept = (swy - slope*swx) / sw;
+  const xBar = swx/sw;
+  const sxx = swx2 - swx*swx/sw;
+  const yMean = swy/sw;
+  const ssTot = pts.reduce((a,p,i)=>a+w[i]*(p.y-yMean)**2, 0);
+  const ssRes = pts.reduce((a,p,i)=>a+w[i]*(p.y-(slope*p.x+intercept))**2, 0);
+  const r2 = ssTot>0 ? Math.max(0, 1-ssRes/ssTot) : 0;
+  const stderr = n>2 ? Math.sqrt(ssRes/(n-2)) : Math.abs(slope)*0.2;
+  return {slope, intercept, r2, stderr, xBar, sxx};
+}
+
+// Moving average smoothing
+function movingAvg(values, window=3) {
+  return values.map((_,i)=>{
+    const s=Math.max(0,i-window+1);
+    const slice=values.slice(s,i+1);
+    return slice.reduce((a,v)=>a+v,0)/slice.length;
+  });
+}
+
+// Detect WoW growth rates, return average and std dev
+function growthStats(values) {
+  if(values.length<2) return {avg:0, std:0};
+  const rates=[];
+  for(let i=1;i<values.length;i++){
+    if(values[i-1]>0) rates.push((values[i]-values[i-1])/values[i-1]);
+  }
+  if(!rates.length) return {avg:0, std:0};
+  const avg=rates.reduce((a,v)=>a+v,0)/rates.length;
+  const std=Math.sqrt(rates.reduce((a,v)=>a+(v-avg)**2,0)/rates.length);
+  return {avg, std};
+}
+
+// Spike detection — returns indices of anomalous points (>2 std from trend)
+function detectSpikes(values, reg) {
+  const residuals=values.map((v,i)=>v-(reg.slope*i+reg.intercept));
+  const mean=residuals.reduce((a,v)=>a+v,0)/residuals.length;
+  const std=Math.sqrt(residuals.reduce((a,v)=>a+(v-mean)**2,0)/residuals.length);
+  return residuals.map((r,i)=>Math.abs(r-mean)>2*std ? i : -1).filter(i=>i>=0);
+}
+
+// Main forecast function
+// Returns {historical, forecast:[{x,y,label}], upper, lower, reg, spikes, growthRate}
+function generateForecast({byDate, metricKey, periods, weightRecent, growthAdj, includeCampaigns, confidenceLevel=0.95}) {
+  if(!byDate||byDate.length<2) return null;
+
+  // Build time series
+  const raw = byDate.map((d,i)=>({x:i, y:d[metricKey]||0, label:d.date}));
+
+  // Build weights (exponential if weightRecent > 0.5)
+  const n = raw.length;
+  const wArr = raw.map((_,i)=>{
+    const recency = i/(n-1); // 0..1, higher = more recent
+    return 1 + (weightRecent-0.5)*2 * recency; // range 0..2
+  });
+
+  // Spike-adjusted regression: exclude spike points for cleaner trend line
+  const baseReg = linReg(raw, wArr);
+  const spikes = detectSpikes(raw.map(p=>p.y), baseReg);
+  const cleanPts = includeCampaigns ? raw : raw.filter((_,i)=>!spikes.includes(i));
+  const cleanW   = includeCampaigns ? wArr : wArr.filter((_,i)=>!spikes.includes(i));
+  const reg = cleanPts.length>=2 ? linReg(cleanPts, cleanW) : baseReg;
+
+  // Seasonal factor (weekday vs weekend proxy — with weekly data, use WoW deviation)
+  const smoothed = movingAvg(raw.map(p=>p.y), 2);
+  const seasonFactors = raw.map((p,i)=>smoothed[i]>0 ? p.y/smoothed[i] : 1);
+
+  // Forecast future points
+  const lastDate = new Date(byDate[byDate.length-1].fullDate);
+  const dayInterval = byDate.length>1
+    ? (new Date(byDate[byDate.length-1].fullDate)-new Date(byDate[0].fullDate)) / (byDate.length-1) / 86400000
+    : 7;
+  const periodsPerDataPoint = Math.max(1, dayInterval/7); // weeks per interval
+
+  // Convert periods (days) to data-point steps
+  const steps = Math.ceil(periods / dayInterval);
+  const growthStats_ = growthStats(raw.map(p=>p.y));
+  const adjGrowthPerStep = (growthAdj/100) * periodsPerDataPoint / (periods/7);
+
+  const z = confidenceLevel===0.95 ? 1.96 : confidenceLevel===0.90 ? 1.645 : 2.576;
+
+  const forecastPts=[], upperPts=[], lowerPts=[];
+  for(let s=1;s<=steps;s++){
+    const xi = n-1+s;
+    const trend = reg.slope*xi + reg.intercept;
+    const seasonIdx = xi % Math.max(seasonFactors.length,1);
+    const sf = seasonFactors[seasonIdx%seasonFactors.length] || 1;
+    const adjusted = Math.max(0, trend * (1+adjGrowthPerStep*s) * (includeCampaigns ? sf : 1));
+    // Prediction interval
+    const se = reg.stderr * Math.sqrt(1 + 1/n + (xi-reg.xBar)**2/Math.max(reg.sxx,1));
+    const d = new Date(lastDate); d.setDate(d.getDate()+Math.round(s*dayInterval));
+    const label = `${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
+    forecastPts.push({x:xi, y:adjusted, label});
+    upperPts.push({x:xi, y:adjusted + z*se, label});
+    lowerPts.push({x:xi, y:Math.max(0, adjusted - z*se), label});
+  }
+
+  const allPoints = [...raw, ...forecastPts];
+  return { historical:raw, forecast:forecastPts, upper:upperPts, lower:lowerPts,
+           reg, spikes, growthRate:growthStats_.avg, r2:reg.r2, n };
+}
+
+// ── Claude API ─────────────────────────────────────────────────────────────
+async function claude(prompt){
+  try{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":""},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,
+        messages:[{role:"user",content:prompt}]})
+    });
+    const d=await r.json();
+    return d.content?.find(b=>b.type==="text")?.text||"No response.";
+  }catch(e){return "API error: "+e.message;}
+}
+
+// ── SVG: Bar Chart ─────────────────────────────────────────────────────────
+function BarChart({data,valueKey,colorFn,labelKey,height=200}){
+  const W=500,H=height,PAD={t:10,r:10,b:30,l:50};
+  const vals=data.map(d=>d[valueKey]);
+  const max=Math.max(...vals,1);
+  const bw=(W-PAD.l-PAD.r)/data.length;
+  const yScale=v=>H-PAD.b-(v/max)*(H-PAD.t-PAD.b);
+  return(
+    <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height}}>
+      {[0,1,2,3,4].map(i=>{
+        const v=max*i/4; const y=yScale(v);
+        return <g key={i}><line x1={PAD.l} x2={W-PAD.r} y1={y} y2={y} stroke="#E8E4DE" strokeDasharray="3 3"/>
+          <text x={PAD.l-6} y={y+4} textAnchor="end" fontSize={10} fill="#8896AA">{fmt.inr(v)}</text></g>;
+      })}
+      {data.map((d,i)=>{
+        const x=PAD.l+i*bw+bw*0.1, bW=bw*0.8, y=yScale(d[valueKey]);
+        return <g key={i}>
+          <rect x={x} y={y} width={bW} height={Math.max(H-PAD.b-y,0)} fill={colorFn(i)} rx={4}/>
+          <text x={x+bW/2} y={H-PAD.b+14} textAnchor="middle" fontSize={11} fill="#8896AA">{d[labelKey]}</text>
+        </g>;
+      })}
+    </svg>
+  );
+}
+
+// ── SVG: Basic Line Chart ──────────────────────────────────────────────────
+function LineChart({data,lines,height=200}){
+  const W=500,H=height,PAD={t:10,r:10,b:36,l:55};
+  const allVals=lines.flatMap(l=>data.map(d=>d[l.key]));
+  const max=Math.max(...allVals,1);
+  const xStep=(W-PAD.l-PAD.r)/(data.length-1||1);
+  const yScale=v=>H-PAD.b-(v/max)*(H-PAD.t-PAD.b);
+  return(
+    <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height}}>
+      {[0,1,2,3,4].map(i=>{
+        const v=max*i/4; const y=yScale(v);
+        return <g key={i}><line x1={PAD.l} x2={W-PAD.r} y1={y} y2={y} stroke="#E8E4DE" strokeDasharray="3 3"/>
+          <text x={PAD.l-6} y={y+4} textAnchor="end" fontSize={10} fill="#8896AA">{fmt.inr(v)}</text></g>;
+      })}
+      {data.map((d,i)=>( <text key={i} x={PAD.l+i*xStep} y={H-PAD.b+14} textAnchor="middle" fontSize={10} fill="#8896AA">{d.date}</text> ))}
+      {lines.map(l=>{
+        const pts=data.map((d,i)=>`${PAD.l+i*xStep},${yScale(d[l.key])}`).join(" ");
+        return <polyline key={l.key} points={pts} fill="none" stroke={l.color} strokeWidth={l.dashed?1.5:2.5} strokeDasharray={l.dashed?"6 3":undefined}/>;
+      })}
+      {lines.map((l,i)=>(
+        <g key={l.key} transform={`translate(${PAD.l+i*120},${H-4})`}>
+          <line x1={0} x2={16} y1={0} y2={0} stroke={l.color} strokeWidth={2} strokeDasharray={l.dashed?"4 2":undefined}/>
+          <text x={20} y={4} fontSize={10} fill="#8896AA">{l.label}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+// ── SVG: Pie Chart ─────────────────────────────────────────────────────────
+function PieChart({data}){
+  const W=260,H=200,cx=100,cy=100,R=75,ri=40;
+  const total=data.reduce((a,d)=>a+d.value,0)||1;
+  let angle=-Math.PI/2;
+  const slices=data.map((d,i)=>{
+    const sweep=d.value/total*Math.PI*2;
+    const a1=angle,a2=angle+sweep; angle=a2;
+    const x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1);
+    const x2=cx+R*Math.cos(a2),y2=cy+R*Math.sin(a2);
+    const ix1=cx+ri*Math.cos(a1),iy1=cy+ri*Math.sin(a1);
+    const ix2=cx+ri*Math.cos(a2),iy2=cy+ri*Math.sin(a2);
+    const lg=sweep>Math.PI?1:0;
+    return{path:`M ${ix1} ${iy1} L ${x1} ${y1} A ${R} ${R} 0 ${lg} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${ri} ${ri} 0 ${lg} 0 ${ix1} ${iy1} Z`,color:CH[i%4],label:d.name,value:d.value};
+  });
+  return(
+    <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:H}}>
+      {slices.map((s,i)=><path key={i} d={s.path} fill={s.color} stroke="#fff" strokeWidth={2}/>)}
+      {slices.map((s,i)=>(
+        <g key={i} transform={`translate(${cx+20},${30+i*22})`}>
+          <rect x={100} y={-9} width={10} height={10} fill={s.color} rx={2}/>
+          <text x={114} y={0} fontSize={11} fill="#4A5568">{s.label} {s.value}%</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+// ── SVG: Forecast Chart ────────────────────────────────────────────────────
+// Shows: historical (solid), forecast (dashed), confidence band, spike markers
+function ForecastChart({result, metricKey, metricLabel, valueFormatter, height=300}){
+  if(!result) return <div style={{height,display:"flex",alignItems:"center",justifyContent:"center",color:"#8896AA",fontSize:14}}>Not enough data to forecast</div>;
+  const {historical, forecast, upper, lower, spikes} = result;
+  const W=600, H=height, PAD={t:20,r:20,b:46,l:66};
+  const plotW=W-PAD.l-PAD.r, plotH=H-PAD.t-PAD.b;
+
+  const allY=[...historical,...forecast,...upper,...lower].map(p=>p.y);
+  const maxY=Math.max(...allY)*1.08, minY=0;
+  const allPts=[...historical,...forecast];
+  const totalN=allPts.length;
+  const xScale=i=>PAD.l+(i/(totalN-1||1))*plotW;
+  const yScale=v=>PAD.t+plotH-((v-minY)/(maxY-minY||1))*plotH;
+
+  // Confidence band polygon
+  const upperPath=forecast.map((p,i)=>`${i===0?"M":"L"}${xScale(historical.length-1+i)},${yScale(upper[i].y)}`).join(" ");
+  const lowerPath=[...forecast].reverse().map((p,i,arr)=>`L${xScale(historical.length-1+(arr.length-1-i))},${yScale(lower[arr.length-1-i].y)}`).join(" ");
+  const bandD=forecast.length>0 ? `${upperPath} ${lowerPath} Z` : "";
+
+  // Historical line points
+  const histPts=historical.map((p,i)=>`${xScale(i)},${yScale(p.y)}`).join(" ");
+  // Forecast line — starts from last historical point
+  const fcPts=[historical[historical.length-1],...forecast].map((p,i)=>`${xScale(historical.length-1+i)},${yScale(p.y)}`).join(" ");
+
+  // Y axis ticks
+  const yTicks=5;
+  const todayX=xScale(historical.length-1);
+
+  // X-axis label spacing: show ~8 labels max
+  const labelEvery=Math.ceil(totalN/8);
+
+  return(
+    <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height}}>
+      {/* Y grid + labels */}
+      {Array.from({length:yTicks+1},(_,i)=>{
+        const v=minY+(maxY-minY)*i/yTicks;
+        const y=yScale(v);
+        return <g key={i}>
+          <line x1={PAD.l} x2={W-PAD.r} y1={y} y2={y} stroke="#E8E4DE" strokeDasharray="3 3"/>
+          <text x={PAD.l-6} y={y+4} textAnchor="end" fontSize={10} fill="#8896AA">{valueFormatter(v)}</text>
+        </g>;
+      })}
+      {/* Confidence band */}
+      {bandD && <path d={bandD} fill="rgba(26,107,74,0.10)"/>}
+      {/* Upper/lower bound lines */}
+      {forecast.length>0 && <>
+        <polyline points={forecast.map((p,i)=>`${xScale(historical.length-1+i)},${yScale(upper[i].y)}`).join(" ")}
+          fill="none" stroke="#1A6B4A" strokeWidth={1} strokeDasharray="2 4" opacity={0.5}/>
+        <polyline points={forecast.map((p,i)=>`${xScale(historical.length-1+i)},${yScale(lower[i].y)}`).join(" ")}
+          fill="none" stroke="#1A6B4A" strokeWidth={1} strokeDasharray="2 4" opacity={0.5}/>
+      </>}
+      {/* Historical line */}
+      <polyline points={histPts} fill="none" stroke="#1A6B4A" strokeWidth={2.5}/>
+      {/* Forecast line */}
+      <polyline points={fcPts} fill="none" stroke="#1A6B4A" strokeWidth={2} strokeDasharray="7 4"/>
+      {/* Historical dots */}
+      {historical.map((p,i)=>(
+        <circle key={i} cx={xScale(i)} cy={yScale(p.y)} r={3} fill="#1A6B4A"/>
+      ))}
+      {/* Spike markers */}
+      {spikes.map(si=>(
+        <g key={si}>
+          <circle cx={xScale(si)} cy={yScale(historical[si].y)} r={5} fill="none" stroke="#D97706" strokeWidth={2}/>
+          <text x={xScale(si)} y={yScale(historical[si].y)-8} textAnchor="middle" fontSize={9} fill="#D97706">spike</text>
+        </g>
+      ))}
+      {/* End forecast circle with label */}
+      {forecast.length>0 && <>
+        <circle cx={xScale(totalN-1)} cy={yScale(forecast[forecast.length-1].y)} r={5} fill="#1A6B4A"/>
+        <rect x={xScale(totalN-1)-28} y={yScale(forecast[forecast.length-1].y)-26} width={56} height={18} rx={4} fill="#1A6B4A"/>
+        <text x={xScale(totalN-1)} y={yScale(forecast[forecast.length-1].y)-13} textAnchor="middle" fontSize={10} fill="#fff" fontWeight="600">
+          {valueFormatter(forecast[forecast.length-1].y)}
+        </text>
+      </>}
+      {/* "Today" divider */}
+      <line x1={todayX} x2={todayX} y1={PAD.t} y2={H-PAD.b} stroke="#CBD5E1" strokeWidth={1.5} strokeDasharray="4 3"/>
+      <text x={todayX} y={PAD.t-5} textAnchor="middle" fontSize={9} fill="#8896AA">latest</text>
+      {/* X-axis labels */}
+      {allPts.map((p,i)=>i%labelEvery===0&&(
+        <text key={i} x={xScale(i)} y={H-PAD.b+14} textAnchor="middle" fontSize={9} fill={i>=historical.length?"#1A6B4A":"#8896AA"}>{p.label}</text>
+      ))}
+      {/* Forecast label */}
+      {forecast.length>0 && (
+        <text x={xScale(historical.length-1)+(xScale(totalN-1)-xScale(historical.length-1))/2}
+          y={H-PAD.b+28} textAnchor="middle" fontSize={9} fill="#1A6B4A" fontWeight="600">— forecast →</text>
+      )}
+      {/* Legend */}
+      <g transform={`translate(${PAD.l},${H-6})`}>
+        <line x1={0} x2={14} y1={0} y2={0} stroke="#1A6B4A" strokeWidth={2.5}/>
+        <text x={18} y={4} fontSize={9} fill="#8896AA">Historical</text>
+        <line x1={80} x2={94} y1={0} y2={0} stroke="#1A6B4A" strokeWidth={2} strokeDasharray="5 3"/>
+        <text x={98} y={4} fontSize={9} fill="#8896AA">Forecast</text>
+        <rect x={162} y={-5} width={12} height={10} fill="rgba(26,107,74,0.15)" rx={2}/>
+        <text x={178} y={4} fontSize={9} fill="#8896AA">95% CI</text>
+      </g>
+    </svg>
+  );
+}
+
+// ── Common UI atoms ────────────────────────────────────────────────────────
+function Skeleton(){
+  return(
+    <div className="insight-box" style={{opacity:.6}}>
+      <div className="insight-label">✦ Analysis</div>
+      {[100,94,86].map((w,i)=>(
+        <div key={i} style={{height:14,background:"#E8E4DE",borderRadius:4,width:w+"%",marginBottom:8}}/>
+      ))}
+    </div>
+  );
+}
+
+function KPI({label,value,sub,trend}){
+  const cls=trend==="up"?"kpi-up":trend==="down"?"kpi-down":"kpi-flat";
+  const arr=trend==="up"?"↑":trend==="down"?"↓":"→";
+  return(
+    <div className="card-sm fade-up">
+      <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:8}}>{label}</div>
+      <div className="serif" style={{fontSize:28,lineHeight:1,marginBottom:6}}>{value}</div>
+      {sub&&<span className={cls}>{arr} {sub}</span>}
+    </div>
+  );
+}
+
+function Opps({opps}){
+  if(!opps?.length) return null;
+  return(
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}} className="opp-row">
+      {opps.map((o,i)=>(
+        <div key={i} className="card fade-up" style={{borderLeft:`3px solid ${i===0?C.accent:C.amber}`}}>
+          <div style={{fontWeight:600,marginBottom:12}}>{o.title}</div>
+          {o.type==="budget"?(
+            <div style={{fontSize:13,lineHeight:1.8}}>
+              <strong>{o.from}</strong> underperforms vs <strong>{o.to}</strong>
+              <div style={{display:"flex",gap:20,background:C.paper,padding:"8px 12px",borderRadius:8,margin:"10px 0",fontSize:12}}>
+                <span>Now: <strong style={{color:C.red}}>{fmt.x(o.fromRoas)}</strong></span>
+                <span>Target: <strong style={{color:C.accent}}>{fmt.x(o.toRoas)}</strong></span>
+              </div>
+              <span style={{color:C.accent,fontWeight:600}}>↑ Shift 10% spend → {fmt.inr(o.potential)} upside</span>
+            </div>
+          ):(
+            <div style={{fontSize:13,lineHeight:1.8}}>
+              <strong>{o.channel}</strong> leads CTR ({fmt.pct(o.ctr)}) but CVR is only {fmt.pct(o.cvr)}
+              <div style={{background:C.paper,padding:"8px 12px",borderRadius:8,margin:"10px 0",fontSize:12}}>A/B test landing page copy this sprint</div>
+              <span style={{color:C.amber,fontWeight:600}}>↑ +3–5% CVR ≈ {o.impact} more revenue</span>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Upload ─────────────────────────────────────────────────────────────────
+function Upload({onData}){
+  const ref=useRef();
+  const [err,setErr]=useState("");
+  const load=(text,name)=>{ try{setErr("");onData(parseCSV(text),name);}catch(e){setErr(e.message);} };
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"60vh",gap:24}}>
+      <div style={{textAlign:"center",maxWidth:480}}>
+        <div className="serif" style={{fontSize:38,lineHeight:1.2,marginBottom:12}}>Upload your<br/><em>performance data</em></div>
+        <div style={{color:C.mist,fontSize:14,lineHeight:1.7}}>CSV columns: <code style={{background:C.rule,padding:"1px 6px",borderRadius:4,fontSize:12}}>date, channel, impressions, clicks, orders, revenue, spend</code></div>
+      </div>
+      {err&&<div style={{width:"100%",maxWidth:480}} className="err">{err.split("\n").map((l,i)=><div key={i}>• {l}</div>)}</div>}
+      <div className="drop-zone" style={{width:"100%",maxWidth:480}} onClick={()=>ref.current.click()}>
+        <div style={{fontSize:36,marginBottom:12}}>📂</div>
+        <div style={{fontWeight:500,marginBottom:4}}>Drop CSV here or click to browse</div>
+        <div style={{color:C.mist,fontSize:13}}>Blinkit · Zepto · Meta · Google</div>
+        <input ref={ref} type="file" accept=".csv" style={{display:"none"}}
+          onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>load(ev.target.result,f.name);r.readAsText(f);e.target.value="";}}/>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <div style={{height:1,width:80,background:C.rule}}/><span style={{color:C.mist,fontSize:13}}>or try sample data</span><div style={{height:1,width:80,background:C.rule}}/>
+      </div>
+      <button className="btn btn-outline" onClick={()=>load(SAMPLE,"Sample Dataset (Jan 2024)")}>Load Sample Data →</button>
+    </div>
+  );
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+function Dashboard({rows,vis,setVis}){
+  // ── Date filter state ───────────────────────────────────────────────────
+  const allDates = useMemo(()=>[...new Set(rows.map(r=>r.date))].sort(),[rows]);
+  const [quickFilter, setQuickFilter] = useState("all"); // "4w"|"8w"|"12w"|"all"|"custom"
+  const [customDates, setCustomDates] = useState(()=>new Set(allDates));
+
+  // Keep customDates in sync when rows change (new upload)
+  React.useEffect(()=>{ setCustomDates(new Set(allDates)); setQuickFilter("all"); },[allDates.join(",")]);
+
+  const activeDates = useMemo(()=>{
+    if(quickFilter==="4w")     return allDates.slice(-4);
+    if(quickFilter==="8w")     return allDates.slice(-8);
+    if(quickFilter==="12w")    return allDates.slice(-12);
+    if(quickFilter==="custom") return allDates.filter(d=>customDates.has(d));
+    return allDates; // "all"
+  },[quickFilter, customDates, allDates]);
+
+  // Recompute metrics from date-filtered + channel-filtered rows
+  const filteredRows = useMemo(()=>rows.filter(r=>activeDates.includes(r.date)),[rows,activeDates]);
+  const metrics = useMemo(()=>compute(filteredRows),[filteredRows]);
+  const {byChannel,byDate,total,opps} = metrics;
+
+  const shown = byChannel.filter(c=>vis.has(c.channel));
+  const vt={revenue:shown.reduce((a,c)=>a+c.revenue,0),spend:shown.reduce((a,c)=>a+c.spend,0),orders:shown.reduce((a,c)=>a+c.orders,0),clicks:shown.reduce((a,c)=>a+c.clicks,0)};
+  vt.roas=vt.spend>0?+(vt.revenue/vt.spend).toFixed(2):0; vt.cpo=vt.orders>0?+(vt.spend/vt.orders).toFixed(0):0;
+
+  const [insight,setInsight]=useState(""); const [loading,setLoading]=useState(false);
+  const getInsight=async()=>{
+    setLoading(true);
+    const s=shown.map(c=>`${c.channel}: Revenue ${fmt.inr(c.revenue)}, ROAS ${c.roas.toFixed(2)}x, CTR ${fmt.pct(c.ctr)}, CVR ${fmt.pct(c.cvr)}`).join("\n");
+    const r=await claude(`Growth marketing analyst. Data:\n\n${s}\n\n3-sentence executive insight: what's working, what's not, one specific action. Direct, no filler.`);
+    setInsight(r); setLoading(false);
+  };
+
+  const toggleCustomDate=(d)=>{
+    const s=new Set(customDates);
+    s.has(d)?s.delete(d):s.add(d);
+    setCustomDates(s);
+  };
+
+  // Friendly label for active range
+  const rangeLabel = quickFilter==="all" ? `All ${allDates.length} weeks`
+    : quickFilter==="custom" ? `${activeDates.length} of ${allDates.length} weeks selected`
+    : `${activeDates.length} weeks (${activeDates[0]?.slice(5)} → ${activeDates[activeDates.length-1]?.slice(5)})`;
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:20}}>
+
+      {/* ── Date + Channel filters ── */}
+      <div className="card fade-up">
+        <div style={{display:"flex",alignItems:"flex-start",gap:28,flexWrap:"wrap"}}>
+
+          {/* Date filter */}
+          <div style={{flex:1,minWidth:260}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+              <div style={{fontWeight:600,fontSize:13}}>Date Range</div>
+              <span style={{fontSize:11,color:C.mist}}>{rangeLabel}</span>
+            </div>
+            <div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>
+              {[["4w","Last 4W"],["8w","Last 8W"],["12w","Last 12W"],["all","All Time"],["custom","Custom"]].map(([v,l])=>(
+                <button key={v} className={`btn ${quickFilter===v?"btn-active":"btn-outline"}`}
+                  style={{fontSize:12,padding:"5px 12px",borderRadius:20}}
+                  onClick={()=>{ setQuickFilter(v); if(v==="custom") setCustomDates(new Set(allDates)); }}>
+                  {l}
+                </button>
+              ))}
+            </div>
+            {quickFilter==="custom" && (
+              <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:4}}>
+                {allDates.map(d=>(
+                  <label key={d} className={`pill ${customDates.has(d)?"on":""}`} style={{fontFamily:"monospace",fontSize:11}}>
+                    <input type="checkbox" checked={customDates.has(d)} onChange={()=>toggleCustomDate(d)} style={{display:"none"}}/>
+                    {d.slice(5)}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{width:1,background:C.rule,alignSelf:"stretch",margin:"0 4px"}}/>
+
+          {/* Channel filter */}
+          <div>
+            <div style={{fontWeight:600,fontSize:13,marginBottom:10}}>Channels</div>
+            <div style={{display:"flex",flexWrap:"wrap"}}>
+              {byChannel.map((c,i)=>(
+                <label key={c.channel} className={`pill ${vis.has(c.channel)?"on":""}`}>
+                  <input type="checkbox" checked={vis.has(c.channel)} onChange={e=>{const s=new Set(vis);e.target.checked?s.add(c.channel):s.delete(c.channel);setVis(s);}}/>
+                  <span style={{width:8,height:8,borderRadius:"50%",background:CH[i%4],display:"inline-block"}}/>{c.channel}
+                </label>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:14}} className="kpi-row">
+        <KPI label="Total Revenue"  value={fmt.inr(vt.revenue)} sub="selected period" trend="up"/>
+        <KPI label="Total Spend"    value={fmt.inr(vt.spend)}   sub="budget utilised" trend="flat"/>
+        <KPI label="Blended ROAS"   value={fmt.x(vt.roas)}      sub="across channels" trend={vt.roas>=4?"up":"down"}/>
+        <KPI label="Total Orders"   value={fmt.num(vt.orders)}  sub="conversions" trend="up"/>
+        <KPI label="Cost Per Order" value={"₹"+vt.cpo}          sub="efficiency" trend={+vt.cpo<=350?"up":"down"}/>
+      </div>
+
+      <Opps opps={opps}/>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}} className="chart-row">
+        <div className="card fade-up">
+          <div style={{fontWeight:600,marginBottom:16}}>Revenue & Spend Trend</div>
+          <LineChart data={byDate} lines={[{key:"revenue",color:C.accent,label:"Revenue"},{key:"spend",color:C.amber,label:"Spend",dashed:true}]}/>
+        </div>
+        <div className="card fade-up">
+          <div style={{fontWeight:600,marginBottom:16}}>Revenue by Channel</div>
+          <BarChart data={shown} valueKey="revenue" labelKey="channel" colorFn={i=>CH[i%4]}/>
+        </div>
+      </div>
+
+      <div className="card fade-up">
+        <div style={{fontWeight:600,marginBottom:16}}>Channel Breakdown</div>
+        <div style={{overflowX:"auto"}}>
+          <table>
+            <thead><tr><th>Channel</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>CVR</th><th>Orders</th><th>Revenue</th><th>Spend</th><th>ROAS</th><th>CPC</th></tr></thead>
+            <tbody>{shown.map((c,i)=>(
+              <tr key={i}>
+                <td><span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",background:CH[i%4],marginRight:8}}/><strong>{c.channel}</strong></td>
+                <td>{fmt.num(c.impressions/1000)}K</td><td>{fmt.num(c.clicks/1000)}K</td>
+                <td>{fmt.pct(c.ctr)}</td><td>{fmt.pct(c.cvr)}</td><td>{fmt.num(c.orders)}</td>
+                <td style={{fontWeight:600}}>{fmt.inr(c.revenue)}</td><td>{fmt.inr(c.spend)}</td>
+                <td><span className={c.roas>=5?"kpi-up":c.roas>=4?"kpi-flat":"kpi-down"}>{fmt.x(c.roas)}</span></td>
+                <td>₹{c.cpc.toFixed(1)}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="card fade-up">
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+          <div style={{fontWeight:600}}>AI Growth Insight</div>
+          <button className="btn btn-primary" onClick={getInsight} disabled={loading} style={{fontSize:13,padding:"8px 18px"}}>
+            {loading&&<span className="spinner"/>}{loading?"Analysing…":"Generate Insight"}
+          </button>
+        </div>
+        {loading?<Skeleton/>:insight?<div className="insight-box"><div className="insight-label">✦ Analysis</div>{insight}</div>
+          :<div style={{color:C.mist,fontSize:14,padding:"10px 0"}}>Click "Generate Insight" for an AI-powered analysis.</div>}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ── DIMINISHING RETURNS ENGINE ────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Model: Revenue(spend) = baseRevenue × (spend / baseSpend) ^ alpha
+//   • alpha < 1 → concave curve (diminishing returns)
+//   • Each channel gets a different alpha based on audience type:
+//     – Quick commerce (Blinkit/Zepto): alpha ~0.70 — small captive audience, saturates fast
+//     – Social (Meta/Instagram): alpha ~0.65 — creative fatigue + broad but overlap-heavy reach
+//     – Search (Google/SEM): alpha ~0.76 — intent-driven, scales better until query cap
+//   • Above saturation point (spend × satMultiplier), an extra penalty applies
+//     simulating audience exhaustion and CPM inflation
+//
+// CAC: rises as spend^(1-alpha) — orders grow slower than spend
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Channel-type defaults — matched by lowercased channel name substring
+const ALPHA_MAP = [
+  {keys:["blinkit","blink"],   alpha:0.72, satMult:2.2},
+  {keys:["zepto","zep"],        alpha:0.70, satMult:2.0},
+  {keys:["swiggy","instamart"], alpha:0.71, satMult:2.1},
+  {keys:["meta","facebook","instagram","fb"], alpha:0.65, satMult:3.2},
+  {keys:["google","goog","sem","search"],     alpha:0.76, satMult:3.5},
+];
+const DEFAULT_CURVE = {alpha:0.72, satMult:2.5};
+
+function curveParamsFor(channelName){
+  const k = channelName.toLowerCase();
+  for(const row of ALPHA_MAP){
+    if(row.keys.some(kw=>k.includes(kw))) return {alpha:row.alpha, satMult:row.satMult};
+  }
+  return DEFAULT_CURVE;
+}
+
+// Build per-channel curve objects calibrated to historical data
+function buildCurves(byChannel){
+  return byChannel.map(c=>{
+    const {alpha, satMult} = curveParamsFor(c.channel);
+    const satPoint = c.spend * satMult;  // ₹ spend level where saturation sets in
+    return { channel:c.channel, baseSpend:c.spend, baseRevenue:c.revenue,
+             baseOrders:c.orders, baseROAS:c.roas, alpha, satPoint, satMult };
+  });
+}
+
+// Project revenue, orders, ROAS, CAC at a new spend level using the power curve
+function projectChannel(curve, newSpend){
+  if(!curve || newSpend <= 0) return {revenue:0, orders:0, roas:0, cac:0, efficiencyPct:0, satStatus:"under"};
+  const {baseSpend, baseRevenue, baseOrders, alpha, satPoint} = curve;
+  if(baseSpend <= 0) return {revenue:0, orders:0, roas:0, cac:0, efficiencyPct:0, satStatus:"under"};
+
+  const ratio = newSpend / baseSpend;
+
+  // ── Revenue: power curve with over-saturation penalty ──────────────────
+  let revenue = baseRevenue * Math.pow(ratio, alpha);
+  const satRatio = newSpend / satPoint;          // 1.0 = exactly at saturation
+  if(satRatio > 1){
+    // Penalty starts at saturation and grows: -18% per doubling beyond sat point
+    const excess = satRatio - 1;
+    revenue *= Math.max(0.40, 1 - excess * 0.22);
+  }
+
+  // ── Orders: slightly less steep decay than revenue (price per order rises) ──
+  let orders = baseOrders * Math.pow(ratio, alpha * 0.88);
+  if(satRatio > 1){
+    const excess = satRatio - 1;
+    orders *= Math.max(0.45, 1 - excess * 0.18);
+  }
+  orders = Math.max(0, Math.round(orders));
+
+  const roas = newSpend > 0 ? revenue / newSpend : 0;
+  const cac  = orders  > 0 ? newSpend / orders  : 0;
+
+  // ── Efficiency %: how well each ₹ is being used vs historical baseline ──
+  // 100% = performing at historical ROAS; drops as over-allocated, rises if under
+  const efficiencyPct = Math.min(100, Math.round((roas / Math.max(curve.baseROAS, 0.01)) * 100));
+
+  // Saturation status for UI colour coding
+  const satStatus = satRatio < 0.6 ? "under"           // below 60% of sat → underutilised
+                  : satRatio < 0.9 ? "sweet"            // 60-90% → sweet spot
+                  : satRatio < 1.2 ? "approaching"      // 90-120% → approaching saturation
+                  :                  "saturated";       // >120% → over-saturated
+
+  return {revenue, orders, roas, cac:Math.round(cac), efficiencyPct, satStatus, satRatio};
+}
+
+// Optimal allocation: maximise total revenue using marginal return equalization
+// Each channel's marginal return dR/dSpend = alpha × R_base × spend^(alpha-1) / base^alpha
+// Optimal when all marginals are equal → solved via iterative proportional scaling
+function computeOptimalAlloc(curves, totalBudget){
+  // Start with equal allocation, iterate toward marginal equality
+  let spends = Object.fromEntries(curves.map(c=>[c.channel, totalBudget/curves.length]));
+  for(let iter=0; iter<200; iter++){
+    // Marginal return for each channel at current spend
+    const marginals = curves.map(c=>{
+      const s = spends[c.channel];
+      if(s <= 0 || c.baseSpend <= 0) return {ch:c.channel, m:0};
+      // dR/dSpend = alpha * R_base * (s/baseSpend)^(alpha-1) / baseSpend
+      const satRatio = s / c.satPoint;
+      let m = c.alpha * c.baseRevenue * Math.pow(s/c.baseSpend, c.alpha-1) / c.baseSpend;
+      if(satRatio > 1) m *= Math.max(0.20, 1 - (satRatio-1)*0.40); // penalise over-sat in marginal too
+      return {ch:c.channel, m:Math.max(0, m)};
+    });
+    const sumM = marginals.reduce((a,x)=>a+x.m, 0);
+    if(sumM <= 0) break;
+    // New spend proportional to marginal returns
+    const newSpends = Object.fromEntries(marginals.map(({ch,m})=>[ch, (m/sumM)*totalBudget]));
+    // Check convergence
+    const maxDelta = curves.reduce((a,c)=>Math.max(a,Math.abs(newSpends[c.channel]-spends[c.channel])),0);
+    spends = newSpends;
+    if(maxDelta < 1) break;
+  }
+  // Convert to percentages
+  const pcts = {};
+  curves.forEach(c=>{ pcts[c.channel] = Math.max(1, Math.round(spends[c.channel]/totalBudget*100)); });
+  // Normalise to 100
+  const total100 = Object.values(pcts).reduce((a,x)=>a+x,0);
+  const maxCh = curves.reduce((a,c)=>pcts[c.channel]>pcts[a]?c.channel:a, curves[0].channel);
+  pcts[maxCh] += 100 - total100;
+  return pcts;
+}
+
+const SAT_COLORS = {
+  under:      {bg:"#EBF0FF", text:"#1E4EAD", label:"Underutilised"},
+  sweet:      {bg:"#E8F3EE", text:"#1A6B4A", label:"Sweet spot ✓"},
+  approaching:{bg:"#FEF3C7", text:"#D97706", label:"Near saturation"},
+  saturated:  {bg:"#FFF5F5", text:"#C53030", label:"Saturated ⚠"},
+};
+
+// ── Allocator ──────────────────────────────────────────────────────────────
+function Allocator({metrics}){
+  if(!metrics) return(<div style={{textAlign:"center",padding:"60px 20px",color:C.mist}}><div style={{fontSize:18,fontWeight:600,color:C.ink,marginBottom:12}}>No data loaded</div>Upload a CSV on the Dashboard first.</div>);
+  const{byChannel,total}=metrics;
+
+  // Build diminishing-returns curves once per data load
+  const curves = useMemo(()=>buildCurves(byChannel),[byChannel]);
+  const curveMap = useMemo(()=>Object.fromEntries(curves.map(c=>[c.channel,c])),[curves]);
+
+  const[budget,setBudget]=useState(Math.round(total.spend*1.2/1000)*1000);
+  const[alloc,setAlloc] =useState(()=>{const o={};byChannel.forEach(c=>{o[c.channel]=Math.round(100/byChannel.length)});return o;});
+  const[reco,setReco]   =useState(""); const[loading,setLoading]=useState(false);
+
+  const sum = Object.values(alloc).reduce((a,x)=>a+x,0);
+
+  // Per-channel projections using the curve model
+  const projections = useMemo(()=>{
+    const out={};
+    byChannel.forEach(c=>{
+      const spend = budget*(alloc[c.channel]||0)/100;
+      out[c.channel] = projectChannel(curveMap[c.channel], spend);
+    });
+    return out;
+  },[byChannel, budget, alloc, curveMap]);
+
+  const projRev   = Object.values(projections).reduce((a,p)=>a+p.revenue,0);
+  const projOrders= Object.values(projections).reduce((a,p)=>a+p.orders,0);
+  const projROAS  = budget>0 ? projRev/budget : 0;
+  const projCAC   = projOrders>0 ? budget/projOrders : 0;
+
+  // Baseline (historical) totals for delta comparison
+  const baseRev  = byChannel.reduce((a,c)=>a+c.revenue,0);
+  const baseROAS = total.roas;
+
+  const slide=(ch,val)=>{
+    const rem=100-val; const others=byChannel.filter(c=>c.channel!==ch);
+    const otherSum=others.reduce((a,c)=>a+(alloc[c.channel]||0),0);
+    const n={...alloc,[ch]:val};
+    others.forEach(c=>{n[c.channel]=otherSum>0?Math.round(alloc[c.channel]/otherSum*rem):Math.round(rem/others.length);});
+    setAlloc(n);
+  };
+
+  // Curve-aware optimisation: use marginal return equalisation
+  const optimise=()=>{ setAlloc(computeOptimalAlloc(curves, budget)); };
+
+  const getReco=async()=>{
+    setLoading(true);
+    const d=byChannel.map(c=>{
+      const p=projections[c.channel]; const spd=budget*(alloc[c.channel]||0)/100;
+      return `${c.channel}: alloc ${alloc[c.channel]}% (${fmt.inr(spd)}), historical ROAS ${fmt.x(c.roas,1)}, projected ROAS ${fmt.x(p.roas,1)}, efficiency ${p.efficiencyPct}%, status: ${p.satStatus}`;
+    }).join("\n");
+    const r=await claude(`Performance marketing strategist. Budget ${fmt.inr(budget)}. Using diminishing returns model.\n\n${d}\n\nProjected blended ROAS: ${fmt.x(projROAS,2)} (vs historical ${fmt.x(baseROAS,2)}).\n\n4-sentence rationale: why this split makes sense given saturation curves, which channel has headroom, any over-allocated risk, one optimisation tip. Be specific about the numbers.`);
+    setReco(r); setLoading(false);
+  };
+
+  const roasDelta = projROAS - baseROAS;
+  const revDelta  = projRev  - baseRev;
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:20}}>
+
+      {/* ── Top summary bar ── */}
+      <div className="card fade-up" style={{display:"flex",alignItems:"center",gap:24,flexWrap:"wrap"}}>
+        <div>
+          <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:6}}>Monthly Budget</div>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:20,color:C.mist}}>₹</span>
+            <input type="number" value={budget} onChange={e=>setBudget(+e.target.value)}
+              style={{fontSize:24,fontWeight:600,fontFamily:"'DM Sans',sans-serif",border:"none",outline:"none",width:160,background:"transparent"}}/>
+          </div>
+        </div>
+        <div style={{flex:1}}/>
+        <div style={{textAlign:"right"}}>
+          <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:4}}>Projected Revenue</div>
+          <div className="serif" style={{fontSize:26,lineHeight:1}}>{fmt.inr(projRev)}</div>
+          <div style={{fontSize:11,marginTop:4}}>
+            <span className={revDelta>=0?"kpi-up":"kpi-down"}>{revDelta>=0?"↑":"↓"} {fmt.inr(Math.abs(revDelta))} vs historical</span>
+          </div>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:4}}>Projected ROAS</div>
+          <div className="serif" style={{fontSize:26,lineHeight:1,color:projROAS>=5?C.accent:projROAS>=4?C.amber:C.red}}>{fmt.x(projROAS)}</div>
+          <div style={{fontSize:11,marginTop:4}}>
+            <span className={roasDelta>=0?"kpi-up":"kpi-down"}>{roasDelta>=0?"↑":"↓"} {Math.abs(roasDelta).toFixed(2)}x vs {fmt.x(baseROAS,2)} baseline</span>
+          </div>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:4}}>Proj. CAC</div>
+          <div className="serif" style={{fontSize:26,lineHeight:1,color:projCAC<=total.cpo?C.accent:C.red}}>₹{Math.round(projCAC)}</div>
+          <div style={{fontSize:11,marginTop:4,color:C.mist}}>historical ₹{total.cpo}</div>
+        </div>
+        <button className="btn btn-outline" style={{fontSize:13}} onClick={optimise} title="Finds optimal split using marginal return equalisation">⚡ Auto-Optimise</button>
+      </div>
+
+      {/* ── Sliders + pie ── */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}} className="alloc-row">
+
+        {/* Sliders */}
+        <div className="card fade-up">
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
+            <div style={{fontWeight:600}}>Budget Allocation</div>
+            <div style={{fontSize:11,color:C.mist}}>Diminishing returns applied</div>
+          </div>
+          {byChannel.map((c,i)=>{
+            const p   = projections[c.channel];
+            const spd = budget*(alloc[c.channel]||0)/100;
+            const sc  = SAT_COLORS[p.satStatus];
+            const satPct = Math.min(100, Math.round((p.satRatio||0)*100));
+            return(
+              <div key={c.channel} style={{marginBottom:22,paddingBottom:22,borderBottom:i<byChannel.length-1?`1px solid ${C.rule}`:"none"}}>
+                {/* Row 1: name + alloc + spend */}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{width:10,height:10,borderRadius:"50%",background:CH[i%4],display:"inline-block"}}/>
+                    <span style={{fontWeight:600,fontSize:14}}>{c.channel}</span>
+                    <span style={{fontSize:11,color:C.mist}}>α={curveMap[c.channel]?.alpha.toFixed(2)}</span>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <span style={{fontWeight:700,fontSize:14}}>{alloc[c.channel]}%</span>
+                    <span style={{color:C.mist,fontSize:13}}> · {fmt.inr(spd)}</span>
+                  </div>
+                </div>
+                {/* Slider */}
+                <input type="range" min={0} max={100} value={alloc[c.channel]||0} onChange={e=>slide(c.channel,+e.target.value)}
+                  style={{marginBottom:8}}/>
+                {/* Row 2: ROAS comparison + saturation badge */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
+                  <div style={{display:"flex",gap:12,fontSize:12}}>
+                    <span style={{color:C.mist}}>Historical <strong>{fmt.x(c.roas,2)}</strong></span>
+                    <span>→</span>
+                    <span style={{color:p.roas>=c.roas?C.accent:C.red,fontWeight:600}}>Effective {fmt.x(p.roas,2)}</span>
+                    <span style={{color:C.mist}}>CAC ₹{p.cac}</span>
+                  </div>
+                  <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:20,background:sc.bg,color:sc.text}}>
+                    {sc.label} ({satPct}% of sat.)
+                  </span>
+                </div>
+                {/* Saturation progress bar */}
+                <div style={{height:3,background:C.rule,borderRadius:2,marginTop:6,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:Math.min(100,satPct)+"%",borderRadius:2,
+                    background:p.satStatus==="sweet"?C.accent:p.satStatus==="approaching"?C.amber:p.satStatus==="saturated"?C.red:C.blue,
+                    transition:"width .3s"}}/>
+                </div>
+              </div>
+            );
+          })}
+          <div style={{fontSize:12,padding:"7px 12px",borderRadius:6,color:sum===100?C.accent:C.amber,background:sum===100?"#E8F3EE":"#FEF3C7"}}>
+            {sum===100?"✓ Allocation sums to 100%":`⚠ Currently ${sum}% — rebalance needed`}
+          </div>
+        </div>
+
+        {/* Right col: pie + table */}
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div className="card fade-up">
+            <div style={{fontWeight:600,marginBottom:12}}>Spend Distribution</div>
+            <PieChart data={byChannel.map(c=>({name:c.channel,value:alloc[c.channel]||0}))}/>
+          </div>
+          <div className="card fade-up">
+            <table>
+              <thead><tr><th>Channel</th><th>Alloc</th><th>Spend</th><th>Eff. ROAS</th><th>Proj. Rev</th></tr></thead>
+              <tbody>{byChannel.map((c,i)=>{
+                const spd=budget*(alloc[c.channel]||0)/100;
+                const p=projections[c.channel];
+                const sc=SAT_COLORS[p.satStatus];
+                return(
+                  <tr key={i}>
+                    <td><span style={{color:CH[i%4],fontWeight:600}}>{c.channel}</span></td>
+                    <td>{alloc[c.channel]}%</td>
+                    <td>{fmt.inr(spd)}</td>
+                    <td>
+                      <span style={{fontWeight:600,color:p.roas>=c.roas?C.accent:C.red}}>{fmt.x(p.roas,2)}</span>
+                      <span style={{fontSize:10,marginLeft:4,padding:"1px 5px",borderRadius:10,background:sc.bg,color:sc.text}}>{p.satStatus}</span>
+                    </td>
+                    <td style={{fontWeight:600,color:C.accent}}>{fmt.inr(p.revenue)}</td>
+                  </tr>
+                );
+              })}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Saturation insight strip ── */}
+      {byChannel.some(c=>projections[c.channel]?.satStatus==="saturated") && (
+        <div className="warn-card warn-red fade-up">
+          <span style={{fontSize:18}}>⚠️</span>
+          <span>
+            <strong>Over-saturation detected: </strong>
+            {byChannel.filter(c=>projections[c.channel]?.satStatus==="saturated").map(c=>c.channel).join(", ")} {" "}
+            {byChannel.filter(c=>projections[c.channel]?.satStatus==="saturated").length>1?"are":"is"} beyond the saturation threshold.
+            Marginal ROAS is sharply declining. Redistribute spend to channels showing "Sweet spot" status.
+          </span>
+        </div>
+      )}
+      {byChannel.some(c=>projections[c.channel]?.satStatus==="under") && (
+        <div className="warn-card warn-amber fade-up">
+          <span style={{fontSize:18}}>📉</span>
+          <span>
+            <strong>Underutilised budget: </strong>
+            {byChannel.filter(c=>projections[c.channel]?.satStatus==="under").map(c=>c.channel).join(", ")} {" "}
+            {byChannel.filter(c=>projections[c.channel]?.satStatus==="under").length>1?"have":"has"} spend well below the efficiency curve.
+            Increasing allocation here will produce above-average marginal returns.
+          </span>
+        </div>
+      )}
+
+      {/* ── AI rationale ── */}
+      <div className="card fade-up">
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+          <div>
+            <div style={{fontWeight:600}}>AI Allocation Rationale</div>
+            <div style={{fontSize:12,color:C.mist,marginTop:2}}>Analysis uses the diminishing returns model, not just raw ROAS</div>
+          </div>
+          <button className="btn btn-primary" onClick={getReco} disabled={loading} style={{fontSize:13,padding:"8px 18px"}}>
+            {loading&&<span className="spinner"/>}{loading?"Thinking…":"Justify This Allocation"}
+          </button>
+        </div>
+        {loading?<Skeleton/>:reco?<div className="insight-box"><div className="insight-label">✦ Strategy Note</div>{reco}</div>
+          :<div style={{color:C.mist,fontSize:14,padding:"10px 0"}}>Set your allocation or click Auto-Optimise, then generate a rationale.</div>}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ── FORECAST TAB ──────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+const METRICS = [
+  {key:"revenue", label:"Revenue",       formatter:fmt.inr,                  unit:"₹",    cacThreshold:null},
+  {key:"orders",  label:"Orders (Users)", formatter:v=>fmt.num(v),            unit:"",     cacThreshold:null},
+  {key:"cac",     label:"CAC",            formatter:v=>"₹"+fmt.raw(v,0),      unit:"₹",    cacThreshold:450},
+  {key:"cvr",     label:"Conversion Rate",formatter:v=>fmt.pct(v,2),          unit:"%",    cacThreshold:null},
+];
+const PERIODS=[{label:"7 days",v:7},{label:"30 days",v:30},{label:"90 days",v:90}];
+
+function Forecast({metrics}){
+  if(!metrics) return(<div style={{textAlign:"center",padding:"60px 20px",color:C.mist}}><div style={{fontSize:18,fontWeight:600,color:C.ink,marginBottom:12}}>No data loaded</div>Upload a CSV on the Dashboard first.</div>);
+
+  const{byDate}=metrics;
+
+  // Controls
+  const [metricIdx,setMetricIdx]  = useState(0);
+  const [period,setPeriod]        = useState(30);
+  const [weightRecent,setWeight]  = useState(0.7);   // 0=equal, 1=fully recent
+  const [growthAdj,setGrowthAdj]  = useState(0);     // % manual growth adjustment
+  const [campaigns,setCampaigns]  = useState(true);  // include spike/campaign effects
+  const [confidence,setConf]      = useState(0.95);
+
+  // Scenario simulation
+  const [spendDelta,setSpendDelta]  = useState(0);   // spend +/-%
+  const [cvrDelta,setCvrDelta]      = useState(0);   // CVR +/-pp
+  const [churnDelta,setChurnDelta]  = useState(0);   // churn reduction %
+
+  const selMetric = METRICS[metricIdx];
+
+  const result = useMemo(()=>generateForecast({
+    byDate, metricKey:selMetric.key,
+    periods:period, weightRecent, growthAdj, includeCampaigns:campaigns, confidenceLevel:confidence
+  }), [byDate, selMetric.key, period, weightRecent, growthAdj, campaigns, confidence]);
+
+  // Scenario calculations
+  const baseEndForecast = result?.forecast[result.forecast.length-1]?.y || 0;
+  const lastRevenue     = byDate[byDate.length-1]?.revenue || 0;
+  const lastCAC         = byDate[byDate.length-1]?.cac || 0;
+  const lastCVR         = byDate[byDate.length-1]?.cvr || 0;
+
+  // Spend scenario: +X% spend → orders grow proportionally (assuming linear), CAC stays flat
+  const spendImpactRevenue = lastRevenue * (1 + spendDelta/100) * (1 + cvrDelta/100);
+  const spendImpactCAC     = lastCAC * (1 + spendDelta/100) / Math.max(1 + cvrDelta/100 + spendDelta/100*0.5, 0.1);
+  const churnLTVMultiplier = 1 + churnDelta/100 * 1.5; // rough LTV uplift from churn reduction
+  const scenarioRevenue    = spendImpactRevenue * churnLTVMultiplier;
+
+  // Warnings
+  const warnings = [];
+  if(result && selMetric.key==="cac"){
+    const endCAC = result.forecast[result.forecast.length-1]?.y||0;
+    if(endCAC > 450) warnings.push({type:"red", icon:"⚠️", msg:`Forecasted CAC reaches ₹${Math.round(endCAC)} — exceeds ₹450 threshold. Consider optimising ad targeting or improving landing page CVR.`});
+  }
+  if(result && result.growthRate < 0.02 && result.growthRate > -0.01){
+    warnings.push({type:"amber", icon:"📉", msg:`Growth is flattening at ${fmt.pct(result.growthRate*100,1)} WoW. This is a signal to test new creatives, expand to new cohorts, or run a win-back campaign.`});
+  }
+  if(result && result.r2 < 0.7){
+    warnings.push({type:"amber", icon:"📊", msg:`Trend confidence is low (R²=${fmt.raw(result.r2,2)}). More data points will improve forecast accuracy — try uploading 8+ weeks of data.`});
+  }
+  if(result && result.growthRate > 0.15){
+    warnings.push({type:"green", icon:"🚀", msg:`Strong growth detected at ${fmt.pct(result.growthRate*100,1)} WoW. Double down on top-performing channels before competitors catch up.`});
+  }
+
+  // Best case / worst case (use upper/lower bound end values)
+  const bestCase  = result?.upper[result.upper.length-1]?.y || 0;
+  const worstCase = result?.lower[result.lower.length-1]?.y || 0;
+  const baseCase  = baseEndForecast;
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:20}}>
+
+      {/* Controls row */}
+      <div className="card fade-up">
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:16}}>
+          <div>
+            <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:10}}>Forecast Metric</div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {METRICS.map((m,i)=>(
+                <button key={m.key} className={`metric-pill ${metricIdx===i?"active":""}`} onClick={()=>setMetricIdx(i)}>{m.label}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:10}}>Forecast Period</div>
+            <div className="seg-group">
+              {PERIODS.map(p=><button key={p.v} className={`seg ${period===p.v?"active":""}`} onClick={()=>setPeriod(p.v)}>{p.label}</button>)}
+            </div>
+          </div>
+          <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+            <label style={{display:"flex",alignItems:"center",gap:8,fontSize:13,cursor:"pointer",padding:"7px 14px",borderRadius:20,border:"1.5px solid",borderColor:campaigns?C.accent:C.rule,background:campaigns?"#E8F3EE":"#fff",fontWeight:500,transition:"all .2s"}}>
+              <input type="checkbox" checked={campaigns} onChange={e=>setCampaigns(e.target.checked)} style={{display:"none"}}/>
+              {campaigns?"📣":"📭"} Campaigns {campaigns?"ON":"OFF"}
+            </label>
+            <div className="seg-group">
+              {[{l:"90%",v:0.90},{l:"95%",v:0.95},{l:"99%",v:0.99}].map(c=>(
+                <button key={c.v} className={`seg ${confidence===c.v?"active":""}`} onClick={()=>setConf(c.v)}>{c.l} CI</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI summary */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14}} className="kpi-row">
+        <div className="card-sm fade-up">
+          <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:8}}>Latest Actual</div>
+          <div className="serif" style={{fontSize:26,lineHeight:1,marginBottom:6}}>{selMetric.formatter(byDate[byDate.length-1]?.[selMetric.key]||0)}</div>
+          <span className="kpi-flat">→ baseline</span>
+        </div>
+        <div className="card-sm fade-up">
+          <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:8}}>Worst Case</div>
+          <div className="serif" style={{fontSize:26,lineHeight:1,marginBottom:6,color:C.red}}>{selMetric.formatter(worstCase)}</div>
+          <span className="kpi-down">↓ lower bound</span>
+        </div>
+        <div className="card-sm fade-up">
+          <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:8}}>Base Forecast</div>
+          <div className="serif" style={{fontSize:26,lineHeight:1,marginBottom:6,color:C.accent}}>{selMetric.formatter(baseCase)}</div>
+          <span className="kpi-up">↑ in {period} days</span>
+        </div>
+        <div className="card-sm fade-up">
+          <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:8}}>Best Case</div>
+          <div className="serif" style={{fontSize:26,lineHeight:1,marginBottom:6,color:C.blue}}>{selMetric.formatter(bestCase)}</div>
+          <span className="kpi-flat">→ upper bound</span>
+        </div>
+      </div>
+
+      {/* Warnings */}
+      {warnings.length>0 && (
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {warnings.map((w,i)=>(
+            <div key={i} className={`warn-card warn-${w.type} fade-up`}>
+              <span style={{fontSize:18,flexShrink:0}}>{w.icon}</span>
+              <span>{w.msg}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Forecast chart + tuning */}
+      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:14}} className="fc-grid">
+        <div className="card fade-up">
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+            <div style={{fontWeight:600}}>{selMetric.label} Forecast · {period}-day horizon</div>
+            {result && <span style={{fontSize:12,color:C.mist}}>R² {fmt.raw(result.r2,2)} · {result.n} data pts</span>}
+          </div>
+          <ForecastChart result={result} metricKey={selMetric.key} metricLabel={selMetric.label} valueFormatter={selMetric.formatter} height={300}/>
+        </div>
+
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          {/* Tuning sliders */}
+          <div className="card fade-up">
+            <div style={{fontWeight:600,marginBottom:16}}>Tune Assumptions</div>
+            <div style={{marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:6}}>
+                <span>Weight Recent Data</span>
+                <strong>{Math.round(weightRecent*100)}%</strong>
+              </div>
+              <input type="range" min={0} max={1} step={0.05} value={weightRecent} onChange={e=>setWeight(+e.target.value)}/>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:C.mist,marginTop:2}}><span>All equal</span><span>Recent priority</span></div>
+            </div>
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:6}}>
+                <span>Growth Scenario</span>
+                <strong style={{color:growthAdj>0?C.accent:growthAdj<0?C.red:C.mist}}>{growthAdj>0?"+":""}{growthAdj}%</strong>
+              </div>
+              <input type="range" min={-30} max={30} step={5} value={growthAdj} onChange={e=>setGrowthAdj(+e.target.value)}/>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:C.mist,marginTop:2}}><span>−30% bear</span><span>+30% bull</span></div>
+            </div>
+          </div>
+
+          {/* Best/worst case table */}
+          <div className="card fade-up">
+            <div style={{fontWeight:600,marginBottom:14}}>Scenario Range</div>
+            <table>
+              <thead><tr><th>Scenario</th><th>Value</th><th>vs. Now</th></tr></thead>
+              <tbody>
+                {[
+                  {label:"🐻 Worst",v:worstCase,cl:"kpi-down"},
+                  {label:"📈 Base", v:baseCase, cl:"kpi-flat"},
+                  {label:"🚀 Best", v:bestCase, cl:"kpi-up"},
+                ].map(s=>{
+                  const base=byDate[byDate.length-1]?.[selMetric.key]||1;
+                  const delta=base>0?(s.v-base)/base*100:0;
+                  return<tr key={s.label}>
+                    <td style={{fontWeight:500}}>{s.label}</td>
+                    <td style={{fontWeight:600}}>{selMetric.formatter(s.v)}</td>
+                    <td><span className={s.cl}>{delta>=0?"+":""}{delta.toFixed(1)}%</span></td>
+                  </tr>;
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Scenario Simulation */}
+      <div className="card fade-up">
+        <div style={{fontWeight:600,marginBottom:6}}>Scenario Simulation</div>
+        <div style={{color:C.mist,fontSize:13,marginBottom:20}}>Adjust levers to model "what-if" outcomes on top of the forecast.</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:20,marginBottom:24}} className="scenario-row">
+          <div>
+            <div style={{fontSize:13,fontWeight:500,marginBottom:8}}>📣 Marketing Spend <strong style={{color:spendDelta>=0?C.accent:C.red}}>{spendDelta>=0?"+":""}{spendDelta}%</strong></div>
+            <input type="range" min={-50} max={100} step={5} value={spendDelta} onChange={e=>setSpendDelta(+e.target.value)}/>
+            <div style={{fontSize:11,color:C.mist,marginTop:4}}>Impacts revenue & CAC proportionally</div>
+          </div>
+          <div>
+            <div style={{fontSize:13,fontWeight:500,marginBottom:8}}>🎯 Conversion Rate <strong style={{color:cvrDelta>=0?C.accent:C.red}}>{cvrDelta>=0?"+":""}{cvrDelta}pp</strong></div>
+            <input type="range" min={-5} max={10} step={0.5} value={cvrDelta} onChange={e=>setCvrDelta(+e.target.value)}/>
+            <div style={{fontSize:11,color:C.mist,marginTop:4}}>Shifts revenue without changing spend</div>
+          </div>
+          <div>
+            <div style={{fontSize:13,fontWeight:500,marginBottom:8}}>🔄 Churn Reduction <strong style={{color:churnDelta>=0?C.accent:C.red}}>{churnDelta>=0?"+":""}{churnDelta}%</strong></div>
+            <input type="range" min={0} max={50} step={5} value={churnDelta} onChange={e=>setChurnDelta(+e.target.value)}/>
+            <div style={{fontSize:11,color:C.mist,marginTop:4}}>Improves LTV multiplier by 1.5×</div>
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14}} className="scenario-row">
+          {[
+            {label:"Projected Revenue",   value:fmt.inr(scenarioRevenue),    base:lastRevenue,     actual:scenarioRevenue},
+            {label:"Projected CAC",       value:"₹"+Math.round(spendImpactCAC), base:lastCAC,      actual:spendImpactCAC, invertTrend:true},
+            {label:"LTV Multiplier",      value:fmt.raw(churnLTVMultiplier,2)+"x", base:1,          actual:churnLTVMultiplier},
+          ].map((s,i)=>{
+            const delta=s.base>0?(s.actual-s.base)/s.base*100:0;
+            const good = s.invertTrend ? delta<=0 : delta>=0;
+            return(
+              <div key={i} style={{background:C.paper,borderRadius:12,padding:"16px 18px",border:"1px solid",borderColor:good?"#C6DDD4":delta===0?C.rule:"#FCA5A5"}}>
+                <div style={{fontSize:11,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:C.mist,marginBottom:8}}>{s.label}</div>
+                <div className="serif" style={{fontSize:24,marginBottom:6,color:good?C.accent:delta===0?C.ink:C.red}}>{s.value}</div>
+                <span className={good?"kpi-up":delta===0?"kpi-flat":"kpi-down"}>{delta>=0?"+":""}{delta.toFixed(1)}% vs now</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Root App ───────────────────────────────────────────────────────────────
+function App(){
+  const[rows,setRows]   =useState(null);
+  const[file,setFile]   =useState("");
+  const[tab,setTab]     =useState("dashboard");
+  const[metrics,setMet] =useState(null);
+  const[confirm,setConf]=useState(false);
+  const[vis,setVis]     =useState(new Set());
+
+  const onData=useCallback((parsed,name)=>{
+    setRows(parsed); setFile(name);
+    const m=compute(parsed); setMet(m);
+    setVis(new Set(m.channels));
+  },[]);
+
+  const reset=()=>{setRows(null);setMet(null);setConf(false);setVis(new Set());};
+
+  return(
+    <div style={{minHeight:"100vh",background:C.paper,display:"flex",flexDirection:"column"}}>
+      {/* Header */}
+      <div style={{background:"#fff",borderBottom:`1px solid ${C.rule}`,padding:"0 32px",position:"sticky",top:0,zIndex:100}}>
+        <div style={{maxWidth:1100,margin:"0 auto",display:"flex",alignItems:"center",gap:16,height:60}} className="hdr">
+          <div style={{display:"flex",alignItems:"baseline",gap:8,flexShrink:0}}>
+            <span className="serif" style={{fontSize:22,letterSpacing:"-.02em"}}>🚀 Growth OS</span>
+            <span style={{fontSize:11,fontWeight:600,letterSpacing:".12em",textTransform:"uppercase",color:C.mist,borderLeft:`1px solid ${C.rule}`,paddingLeft:10}}>Performance Marketing</span>
+          </div>
+          {rows&&<>
+            <div style={{flex:1}}/>
+            <div className="tab-bar">
+              <button className={`tab ${tab==="dashboard"?"active":""}`}  onClick={()=>setTab("dashboard")}>Dashboard</button>
+              <button className={`tab ${tab==="allocator"?"active":""}`}  onClick={()=>setTab("allocator")}>Budget Allocator</button>
+              <button className={`tab ${tab==="forecast"?"active":""}`}   onClick={()=>setTab("forecast")}>📈 Forecasting</button>
+            </div>
+            <div style={{flex:1}}/>
+            <span style={{fontSize:12,color:C.mist,display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+              <span style={{width:6,height:6,borderRadius:"50%",background:C.accent,display:"inline-block"}}/>{file}
+            </span>
+            <button className="btn btn-outline" style={{fontSize:12,padding:"6px 14px",flexShrink:0}} onClick={()=>setConf(true)}>↑ New Upload</button>
+          </>}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"28px 32px",width:"100%",flex:1}}>
+        {!rows
+          ? <Upload onData={onData}/>
+          : tab==="dashboard"  ? <Dashboard rows={rows} vis={vis} setVis={setVis}/>
+          : tab==="allocator"  ? <Allocator metrics={metrics}/>
+          :                      <Forecast  metrics={metrics}/>
+        }
+      </div>
+
+      <div style={{borderTop:`1px solid ${C.rule}`,padding:"16px 32px",textAlign:"center",color:C.mist,fontSize:12}}>
+        Built with React · Statistical forecasting (weighted linear regression) · Claude API
+      </div>
+
+      {confirm&&(
+        <div className="modal-overlay">
+          <div className="modal">
+            <p>Upload new data? Your current insights and allocations will be cleared.</p>
+            <div className="modal-buttons">
+              <button className="btn btn-outline" onClick={()=>setConf(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={reset}>Yes, upload new</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

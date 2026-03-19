@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Growth OS - Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    h1 { margin-bottom: 20px; }
+    .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background: #f9f9f9; font-weight: bold; }
+    .btn { padding: 10px 20px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+    .btn:hover { background: #555; }
+    .error { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+    .kpi { display: inline-block; background: white; padding: 15px 20px; margin-right: 15px; margin-bottom: 10px; border-radius: 4px; }
+    .kpi-label { font-size: 12px; color: #888; text-transform: uppercase; }
+    .kpi-value { font-size: 24px; font-weight: bold; color: #1a6b4a; }
+    textarea { width: 100%; height: 150px; padding: 10px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Growth OS - Data Test</h1>
+
+    <div class="card">
+      <h2>Upload Your Data</h2>
+      <p>Paste CSV data below (or use sample):</p>
+      <textarea id="csvInput" placeholder="date,channel,impressions,clicks,orders,revenue,spend&#10;2024-01-01,Blinkit,52000,1820,182,54600,9100"></textarea>
+      <button class="btn" onclick="loadSample()">Load Sample Data</button>
+      <button class="btn" onclick="processData()">Process Data</button>
+    </div>
+
+    <div id="errorBox"></div>
+
+    <div class="card" id="metricsCard" style="display:none;">
+      <h2>📊 Metrics Summary</h2>
+      <div id="kpis"></div>
+      <h3 style="margin-top: 20px;">Channel Breakdown</h3>
+      <table id="channelTable"></table>
+    </div>
+  </div>
+
+  <script>
+const SAMPLE_CSV = `date,channel,impressions,clicks,orders,revenue,spend
+2024-01-01,Blinkit,52000,1820,182,54600,9100
+2024-01-01,Zepto,38000,1140,91,27300,5700
+2024-01-01,Meta,210000,4200,168,50400,8400
+2024-01-01,Google,95000,2850,143,42900,7150
+2024-01-08,Blinkit,58000,2088,220,66000,10200
+2024-01-08,Zepto,41000,1312,118,35400,6500
+2024-01-08,Meta,225000,4725,189,56700,9450
+2024-01-08,Google,102000,3162,172,51600,8400
+2024-01-15,Blinkit,61000,2318,248,74400,11200
+2024-01-15,Zepto,44000,1452,132,39600,7100
+2024-01-15,Meta,240000,5040,202,60600,10100
+2024-01-15,Google,108000,3456,190,57000,9200
+2024-01-22,Blinkit,65000,2470,265,79500,12000
+2024-01-22,Zepto,47000,1598,143,42900,7800
+2024-01-22,Meta,255000,5355,215,64500,10750
+2024-01-22,Google,115000,3680,204,61200,9800`;
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const vals = line.split(',');
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = isNaN(vals[i]) ? vals[i]?.trim() : Number(vals[i]);
+    });
+    return obj;
+  });
+}
+
+function processData() {
+  const csvText = document.getElementById('csvInput').value.trim();
+  const errorBox = document.getElementById('errorBox');
+  errorBox.innerHTML = '';
+
+  if (!csvText) {
+    errorBox.innerHTML = '<div class="error">❌ No data entered</div>';
+    return;
+  }
+
+  try {
+    const rows = parseCSV(csvText);
+    console.log('Parsed rows:', rows);
+
+    if (rows.length === 0) {
+      errorBox.innerHTML = '<div class="error">❌ No valid rows found</div>';
+      return;
+    }
+
+    // Calculate metrics
+    const channels = [...new Set(rows.map(r => r.channel))];
+    const byChannel = channels.map(ch => {
+      const r = rows.filter(x => x.channel === ch);
+      const imp = r.reduce((a, x) => a + (x.impressions || 0), 0);
+      const clk = r.reduce((a, x) => a + (x.clicks || 0), 0);
+      const ord = r.reduce((a, x) => a + (x.orders || 0), 0);
+      const rev = r.reduce((a, x) => a + (x.revenue || 0), 0);
+      const spd = r.reduce((a, x) => a + (x.spend || 0), 0);
+
+      return {
+        channel: ch,
+        impressions: imp,
+        clicks: clk,
+        orders: ord,
+        revenue: rev,
+        spend: spd,
+        ctr: imp > 0 ? (clk / imp * 100).toFixed(2) : '0',
+        cvr: clk > 0 ? (ord / clk * 100).toFixed(2) : '0',
+        roas: spd > 0 ? (rev / spd).toFixed(2) : '0',
+        cpc: clk > 0 ? (spd / clk).toFixed(1) : '0'
+      };
+    });
+
+    const total = {
+      revenue: byChannel.reduce((a, c) => a + c.revenue, 0),
+      spend: byChannel.reduce((a, c) => a + c.spend, 0),
+      orders: byChannel.reduce((a, c) => a + c.orders, 0),
+      clicks: byChannel.reduce((a, c) => a + c.clicks, 0)
+    };
+    total.roas = total.spend > 0 ? (total.revenue / total.spend).toFixed(2) : '0';
+    total.cpo = total.orders > 0 ? (total.spend / total.orders).toFixed(0) : '0';
+
+    console.log('Metrics:', { byChannel, total });
+
+    // Display metrics
+    document.getElementById('metricsCard').style.display = 'block';
+
+    let kpisHtml = '';
+    kpisHtml += `<div class="kpi"><div class="kpi-label">Total Revenue</div><div class="kpi-value">₹${(total.revenue / 100000).toFixed(1)}L</div></div>`;
+    kpisHtml += `<div class="kpi"><div class="kpi-label">Total Spend</div><div class="kpi-value">₹${(total.spend / 100000).toFixed(1)}L</div></div>`;
+    kpisHtml += `<div class="kpi"><div class="kpi-label">Blended ROAS</div><div class="kpi-value">${total.roas}x</div></div>`;
+    kpisHtml += `<div class="kpi"><div class="kpi-label">Total Orders</div><div class="kpi-value">${total.orders}</div></div>`;
+    kpisHtml += `<div class="kpi"><div class="kpi-label">Cost Per Order</div><div class="kpi-value">₹${total.cpo}</div></div>`;
+    document.getElementById('kpis').innerHTML = kpisHtml;
+
+    let tableHtml = '<tr><th>Channel</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>CVR</th><th>Orders</th><th>Revenue</th><th>Spend</th><th>ROAS</th><th>CPC</th></tr>';
+    byChannel.forEach(c => {
+      tableHtml += `<tr>
+        <td><strong>${c.channel}</strong></td>
+        <td>${(c.impressions / 1000).toFixed(0)}K</td>
+        <td>${(c.clicks / 1000).toFixed(1)}K</td>
+        <td>${c.ctr}%</td>
+        <td>${c.cvr}%</td>
+        <td>${c.orders}</td>
+        <td>₹${(c.revenue / 100000).toFixed(1)}L</td>
+        <td>₹${(c.spend / 1000).toFixed(0)}K</td>
+        <td><strong>${c.roas}x</strong></td>
+        <td>₹${c.cpc}</td>
+      </tr>`;
+    });
+    document.getElementById('channelTable').innerHTML = tableHtml;
+
+    errorBox.innerHTML = '<div style="color: #1a6b4a; background: #e8f3ee; padding: 10px; border-radius: 4px;">✅ Data loaded successfully!</div>';
+  } catch (e) {
+    console.error('Error:', e);
+    errorBox.innerHTML = `<div class="error">❌ Error: ${e.message}</div>`;
+  }
+}
+
+function loadSample() {
+  document.getElementById('csvInput').value = SAMPLE_CSV;
+  processData();
+}
+  </script>
+</body>
+</html>

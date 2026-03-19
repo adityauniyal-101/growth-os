@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find C:UsersADITYADesktopProjects.Claude -maxdepth 2 -type f \\\\\\(-name *.json -o -name *.yml -o -name *.yaml -o -name Makefile -o -name Procfile \\\\\\))",
+      "Bash(npm init:*)",
+      "Bash(npm --version)",
+      "Bash(cmd.exe /c \"node --version && npm --version\")",
+      "Bash(cmd.exe /c \"where node\")",
+      "Bash(cmd.exe /c \"where npm\")",
+      "Bash(cmd.exe /c \"node -e \"\"console.log\\(process.version\\)\"\"\")",
+      "Bash(cmd.exe /c \"dir \"\"C:\\\\Program Files\\\\nodejs\"\" 2>&1 & dir \"\"C:\\\\Program Files \\(x86\\)\\\\nodejs\"\" 2>&1 & dir \"\"%APPDATA%\\\\npm\"\" 2>&1\")",
+      "Bash(cmd.exe /c \"winget --version\")",
+      "Bash(cmd.exe /c \"winget search nodejs\")",
+      "Bash(powershell.exe -Command \"Invoke-WebRequest -Uri ''https://nodejs.org/dist/v20.17.0/node-v20.17.0-x64.msi'' -OutFile ''$env:TEMP\\\\node-installer.msi''\")",
+      "Bash(powershell.exe -Command \"$ProgressPreference=''SilentlyContinue''; Invoke-WebRequest -Uri ''https://nodejs.org/dist/v20.17.0/node-v20.17.0-x64.msi'' -OutFile ''C:\\\\Users\\\\ADITYA\\\\Downloads\\\\node-installer.msi'' -UseBasicParsing\")",
+      "Bash(powershell -NoProfile -Command \"Invoke-WebRequest -UseBasicParsing -Uri ''https://nodejs.org/dist/v20.17.0/node-v20.17.0-x64.msi'' -OutFile ''C:\\\\Users\\\\ADITYA\\\\Downloads\\\\node-installer.msi''\")",
+      "Bash(cmd.exe /c \"dir C:\\\\Users\\\\ADITYA\\\\Downloads\\\\node-installer.msi\")",
+      "Bash(cmd.exe /c \"curl -L -o C:\\\\Users\\\\ADITYA\\\\Downloads\\\\node-installer.msi https://nodejs.org/dist/v20.17.0/node-v20.17.0-x64.msi\")",
+      "Bash(cmd.exe /c \"dir C:\\\\Users\\\\ADITYA\\\\Downloads\\\\node-installer.msi 2>&1 && echo SIZE_CHECK_DONE\")",
+      "Bash(powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \":*)"
+    ]
+  }
+}
