@@ -9,6 +9,7 @@ import KPICard from '@/components/ui/KPICard'
 import Skeleton from '@/components/ui/Skeleton'
 import LineChart from '@/components/charts/LineChart'
 import BarChart from '@/components/charts/BarChart'
+import ChannelLogo from '@/components/ui/ChannelLogo'
 import type { DateFilter } from '@/types'
 
 function OpportunityCards({ opps }: { opps: ReturnType<typeof compute>['opps'] }) {
@@ -120,17 +121,18 @@ export default function Dashboard() {
           <div style={{ width: 1, background: C.rule, alignSelf: 'stretch', margin: '0 4px' }} />
           <div>
             <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>Channels</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {byChannel.map((c, i) => (
-                <label key={c.channel} className={`pill ${visibleChannels.has(c.channel) ? 'on' : ''}`}>
+                <label key={c.channel} className={`pill ${visibleChannels.has(c.channel) ? 'on' : ''}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', cursor: 'pointer' }}>
                   <input type="checkbox" checked={visibleChannels.has(c.channel)} style={{ display: 'none' }}
                     onChange={e => {
                       const s = new Set(visibleChannels)
                       e.target.checked ? s.add(c.channel) : s.delete(c.channel)
                       setVisibleChannels(s)
                     }} />
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: CH[i % 4], display: 'inline-block' }} />
-                  {c.channel}
+                  <ChannelLogo channel={c.channel} size={18} />
+                  <span style={{ fontSize: 13 }}>{c.channel}</span>
                 </label>
               ))}
             </div>
@@ -175,7 +177,7 @@ export default function Dashboard() {
             <tbody>
               {shown.map((c, i) => (
                 <tr key={i}>
-                  <td><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: CH[i % 4], marginRight: 8 }} /><strong>{c.channel}</strong></td>
+                  <td><div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ChannelLogo channel={c.channel} size={20} /><strong>{c.channel}</strong></div></td>
                   <td>{fmt.num(c.impressions / 1000)}K</td>
                   <td>{fmt.num(c.clicks / 1000)}K</td>
                   <td>{fmt.pct(c.ctr)}</td>

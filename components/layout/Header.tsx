@@ -15,7 +15,7 @@ export default function Header() {
     <div style={{ background: '#fff', borderBottom: '1px solid #E8E4DE', padding: '0 32px', position: 'sticky', top: 0, zIndex: 100 }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 16, height: 60 }} className="hdr">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexShrink: 0 }}>
-          <span className="serif" style={{ fontSize: 22, letterSpacing: '-.02em' }}>🚀 Growth OS</span>
+          <span className="serif" style={{ fontSize: 22, letterSpacing: '-.02em' }}>📈 Ascent Analytics</span>
           <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8896AA', borderLeft: '1px solid #E8E4DE', paddingLeft: 10 }}>
             Performance Marketing
           </span>
