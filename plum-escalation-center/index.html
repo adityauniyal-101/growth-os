@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plum Escalation Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a202c;
+            --bg-tertiary: #2d3748;
+            --border: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --danger-red: #ef4444;
+            --warning-orange: #f97316;
+            --success-green: #22c55e;
+            --purple: #a855f7;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #0c0e16 100%);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* HEADER */
+        header {
+            background: rgba(15, 20, 25, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .header-title h1 span {
+            background: linear-gradient(135deg, #60a5fa, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid var(--success-green);
+            color: var(--success-green);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-badge::before {
+            content: '●';
+        }
+
+        /* TABS */
+        .tabs-container {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(15, 20, 25, 0.5);
+        }
+
+        .tab-button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            top: 1px;
+        }
+
+        .tab-button:hover {
+            color: var(--accent-blue);
+        }
+
+        .tab-button.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        /* MAIN CONTAINER */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* METRICS */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: rgba(26, 32, 44, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--accent-blue);
+            background: rgba(26, 32, 44, 0.9);
+        }
+
+        .metric-card.critical {
+            border-color: var(--danger-red);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+        }
+
+        .metric-card.warning {
+            border-color: var(--warning-orange);
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(249, 115, 22, 0.05));
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card.critical .metric-value {
+            color: var(--danger-red);
+        }
+
+        .metric-card.warning .metric-value {
+            color: var(--warning-orange);
+        }
+
+        .metric-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* CHARTS */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: rgba(26, 32, 44, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .chart-canvas {
+            max-height: 300px;
+        }
+
+        /* OWNERS */
+        .owners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .owner-card {
+            background: rgba(26, 32, 44, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .owner-card:hover {
+            border-color: var(--accent-blue);
+            background: rgba(26, 32, 44, 0.9);
+        }
+
+        .owner-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--accent-blue);
+        }
+
+        .owner-verticals {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .vertical-badge {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+            padding: 0.3rem 0.7rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .owner-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat {
+            background: rgba(15, 20, 25, 0.5);
+            padding: 0.75rem;
+            border-radius: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .workload-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .workload-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-green), var(--warning-orange));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .workload-fill.high {
+            background: linear-gradient(90deg, var(--warning-orange), var(--danger-red));
+        }
+
+        .workload-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* CONTROLS */
+        .controls-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .filter-tab:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .filter-tab.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(26, 32, 44, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.6rem 1rem;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            outline: none;
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .search-bar input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* TABLE */
+        .table-container {
+            background: rgba(26, 32, 44, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .table-action-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .table-action-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(15, 20, 25, 0.5);
+            border-bottom: 2px solid var(--border);
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+            color: var(--text-primary);
+        }
+
+        tbody tr:hover {
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 28px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: white;
+        }
+
+        .priority-p1 { background: var(--danger-red); }
+        .priority-p2 { background: var(--warning-orange); }
+        .priority-p3 { background: rgba(100, 116, 139, 0.7); }
+
+        .status-dropdown, .owner-dropdown, .priority-dropdown {
+            background: rgba(15, 20, 25, 0.8);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .status-dropdown:hover, .owner-dropdown:hover, .priority-dropdown:hover {
+            border-color: var(--accent-blue);
+            background: rgba(15, 20, 25, 0.95);
+        }
+
+        /* MODALS */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2500;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(15, 20, 25, 0.8);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background: rgba(15, 20, 25, 0.95);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-area.active {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .error-msg {
+            color: var(--danger-red);
+            font-size: 0.9rem;
+            padding: 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--danger-red);
+        }
+
+        .success-msg {
+            color: var(--success-green);
+            font-size: 0.9rem;
+            padding: 1rem;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--success-green);
+        }
+
+        .info-msg {
+            color: var(--accent-blue);
+            font-size: 0.9rem;
+            padding: 1rem;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .validation-log {
+            background: rgba(15, 20, 25, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.2);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            th, td { padding: 0.75rem; font-size: 0.8rem; }
+            .owners-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <div style="font-size: 1.5rem;">🚨</div>
+                <div class="header-title">
+                    <h1>Plum <span>Escalation Center</span></h1>
+                    <div class="header-subtitle">AI-powered live Google Sheets email escalation detection</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                    <div id="syncStatus" style="text-align: right;">
+                        <div id="lastSynced">Never</div>
+                        <div id="syncBadge" style="margin-top: 0.25rem;"></div>
+                    </div>
+                </div>
+                <div class="status-badge" id="dataStatus">No Data</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="tabs-container">
+        <button class="tab-button active" data-tab="dashboard">📊 Dashboard</button>
+        <button class="tab-button" data-tab="escalations">⚠️ Escalations</button>
+        <button class="tab-button" data-tab="owners">👥 Owners</button>
+        <button class="tab-button" data-tab="analytics">📈 Analytics</button>
+    </div>
+
+    <!-- DASHBOARD TAB -->
+    <div class="tab-content active" id="dashboard-tab">
+        <div class="container">
+            <div id="dashboardContent"></div>
+        </div>
+    </div>
+
+    <!-- ESCALATIONS TAB -->
+    <div class="tab-content" id="escalations-tab">
+        <div class="container">
+            <div class="controls-section">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all">All</button>
+                    <button class="filter-tab" data-filter="p1">P1</button>
+                    <button class="filter-tab" data-filter="p2">P2</button>
+                    <button class="filter-tab" data-filter="ongoing">Ongoing</button>
+                    <button class="filter-tab" data-filter="resolved">Resolved</button>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div class="search-bar">
+                        <span>🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search...">
+                    </div>
+                    <button class="table-action-btn" id="resetBtn">Reset</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">All Escalations</div>
+                    <button class="table-action-btn" id="forceSync">🔄 Sync Now</button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Issue</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Owner</th>
+                                <th>TAT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <div class="empty-state-icon">📭</div>
+                                    <p>No data uploaded yet</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OWNERS TAB -->
+    <div class="tab-content" id="owners-tab">
+        <div class="container">
+            <div id="ownersContent"></div>
+        </div>
+    </div>
+
+    <!-- ANALYTICS TAB -->
+    <div class="tab-content" id="analytics-tab">
+        <div class="container">
+            <div id="analyticsContent"></div>
+        </div>
+    </div>
+
+    <!-- SYNC STATUS MODAL -->
+    <div class="modal" id="syncModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Google Sheets Sync Status</span>
+                <button class="modal-close" onclick="app.closeModal('syncModal')">✕</button>
+            </div>
+            <div id="syncMessage" class="info-msg"></div>
+            <div id="syncLog" class="validation-log" style="display: block; max-height: 300px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===== APP STATE =====
+        const app = {
+            // Data layer
+            state: {
+                escalations: [],
+                filter: 'all',
+                search: '',
+                currentTab: 'dashboard',
+                lastSyncTime: null,
+                syncError: null,
+                processedEmails: new Set(),
+                googleSheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSjS-PQfa3woq60aAPbyVjd67WJXBcsDDVhb3M0tRybNc40SHIevohq90G1UeDsuXNfR8LP8sau4to3/pub?format=csv',
+                syncInterval: null,
+                syncInProgress: false
+            },
+
+            // Constants
+            EMPLOYEES: [
+                { id: 1, name: 'Vaishnavi', verticals: ['Claims', 'Renewals'], capacity: 80 },
+                { id: 2, name: 'Arun', verticals: ['Onboarding', 'Portal'], capacity: 80 },
+                { id: 3, name: 'Ipsita', verticals: ['Legal', 'Compliance'], capacity: 60 },
+                { id: 4, name: 'Mikhel', verticals: ['Billing'], capacity: 70 },
+                { id: 5, name: 'Rahul', verticals: ['Support', 'General'], capacity: 90 }
+            ],
+
+            VERTICAL_SLA: {
+                'Claims': 24, 'Legal': 12, 'Renewals': 48, 'Onboarding': 24,
+                'Portal': 18, 'Compliance': 12, 'Billing': 48, 'Support': 48, 'General': 48
+            },
+
+            COMPANY_NAMES: [
+                'Apex Ltd', 'Quantum Corp', 'Stellar Services', 'Innovate Tech', 'BlueWave',
+                'Nexus Global', 'Zenith Industries', 'Prism Solutions', 'Orbit Ventures', 'Luminous Labs',
+                'Velocity Partners', 'Summit Holdings', 'Catalyst Systems', 'Horizon Tech', 'Phoenix Digital'
+            ],
+
+            // Logging
+            logs: [],
+            maxLogs: 50,
+
+            log(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const entry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+                this.logs.push(entry);
+                if (this.logs.length > this.maxLogs) {
+                    this.logs.shift();
+                }
+                console.log(entry);
+            },
+
+            // ===== INITIALIZATION =====
+            init() {
+                this.log('App initializing...');
+                this.setupEventListeners();
+                this.loadFromStorage();
+                this.render();
+                this.log('Starting Google Sheets sync...');
+                this.syncFromGoogleSheets();
+                // Auto-sync every 45 seconds
+                this.state.syncInterval = setInterval(() => this.syncFromGoogleSheets(), 45000);
+                // Update sync display every second
+                setInterval(() => this.updateSyncStatus(), 1000);
+                this.log('App initialized - Google Sheets sync active');
+            },
+
+            setupEventListeners() {
+                // Tab buttons
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.switchTab(e.target.dataset.tab);
+                    });
+                });
+
+                // Filter tabs
+                document.querySelectorAll('.filter-tab').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+                        this.state.filter = e.target.dataset.filter;
+                        e.target.classList.add('active');
+                        this.render();
+                    });
+                });
+
+                // Search
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        this.state.search = e.target.value;
+                        this.render();
+                    });
+                }
+
+                // Reset button
+                const resetBtn = document.getElementById('resetBtn');
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', () => {
+                        this.state.filter = 'all';
+                        this.state.search = '';
+                        document.getElementById('searchInput').value = '';
+                        document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+                        document.querySelector('[data-filter="all"]').classList.add('active');
+                        this.render();
+                    });
+                }
+
+                // Force sync button
+                const forceSync = document.getElementById('forceSync');
+                if (forceSync) {
+                    forceSync.addEventListener('click', () => {
+                        this.log('Manual sync triggered');
+                        this.syncFromGoogleSheets();
+                    });
+                }
+            },
+
+            // ===== CSV VALIDATION & PARSING =====
+            validateCSVColumns(headers) {
+                const required = ['subject', 'body', 'sent_at'];
+                const missing = required.filter(col => !headers.includes(col));
+                return {
+                    valid: missing.length === 0,
+                    missing
+                };
+            },
+
+            parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let insideQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    const nextChar = line[i + 1];
+
+                    if (char === '"') {
+                        if (insideQuotes && nextChar === '"') {
+                            current += '"';
+                            i++;
+                        } else {
+                            insideQuotes = !insideQuotes;
+                        }
+                    } else if (char === ',' && !insideQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current.trim());
+                return result;
+            },
+
+            parseCSV(content) {
+                this.log('Starting CSV parse...');
+                const lines = content.split('\n').filter(line => line.trim());
+
+                if (lines.length < 2) {
+                    throw new Error('CSV file is empty or has no data rows');
+                }
+
+                const headers = this.parseCSVLine(lines[0]).map(h => h.toLowerCase());
+                this.log(`Found ${headers.length} columns: ${headers.join(', ')}`);
+
+                const validation = this.validateCSVColumns(headers);
+                if (!validation.valid) {
+                    throw new Error(`Missing required columns: ${validation.missing.join(', ')}`);
+                }
+
+                const rows = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const values = this.parseCSVLine(lines[i]);
+                    const row = {};
+                    headers.forEach((h, idx) => {
+                        row[h] = values[idx] || '';
+                    });
+                    if ((row.subject || row.body) && row.sent_at) {
+                        rows.push(row);
+                    }
+                }
+
+                this.log(`Parsed ${rows.length} valid rows from CSV`);
+                return rows;
+            },
+
+            // ===== ESCALATION PROCESSING =====
+            detectEscalation(email) {
+                const text = ((email.subject || '') + ' ' + (email.body || '')).toLowerCase();
+                let score = 0;
+
+                if (/irdai|legal|lawyer|court|sue/.test(text)) score += 30;
+                if (/sla.*breach|breach.*sla/.test(text)) score += 20;
+                if (/claim.*stuck|stuck.*claim|claim.*delayed|pending/.test(text)) score += 20;
+                if (/waiting|week|day|still/.test(text)) score += 20;
+                if (/frustrated|angry|disappointed|unhappy/.test(text)) score += 15;
+                if (/cancel|switch provider|alternative/.test(text)) score += 25;
+                if (/urgent|asap|immediately|now/.test(text)) score += 10;
+                if (/follow.up|still no|no response/.test(text)) score += 15;
+                if (/issue|problem|delayed|late/.test(text)) score += 10;
+
+                const isEscalation = score >= 25;
+                let priority = 'P3';
+                if (score >= 40) priority = 'P1';
+                else if (score >= 30) priority = 'P2';
+
+                return { isEscalation, priority, score };
+            },
+
+            detectVertical(subject, body) {
+                const text = ((subject || '') + ' ' + (body || '')).toLowerCase();
+
+                if (/claim|coverage|reimbursement|hospital/.test(text)) return 'Claims';
+                if (/legal|irdai|court|complaint|lawsuit/.test(text)) return 'Legal';
+                if (/renewal|renew|premium|quote/.test(text)) return 'Renewals';
+                if (/onboarding|employee|enrol/.test(text)) return 'Onboarding';
+                if (/portal|app|access|login|technical/.test(text)) return 'Portal';
+                if (/compliance|audit|regulation/.test(text)) return 'Compliance';
+                if (/billing|invoice|payment|receipt/.test(text)) return 'Billing';
+                if (/help|support|assist|question/.test(text)) return 'Support';
+
+                return 'General';
+            },
+
+            autoAssignOwner(vertical) {
+                const qualified = this.EMPLOYEES.filter(e => e.verticals.includes(vertical));
+                if (qualified.length === 0) return this.EMPLOYEES[4].name;
+
+                const workload = {};
+                this.EMPLOYEES.forEach(e => {
+                    workload[e.name] = this.state.escalations.filter(x =>
+                        x.owner === e.name && x.status === 'Ongoing').length;
+                });
+
+                return qualified.reduce((best, emp) =>
+                    (workload[emp.name] || 0) < (workload[best.name] || 0) ? emp : best
+                ).name;
+            },
+
+            processEscalations(emailRows) {
+                this.log(`Processing ${emailRows.length} email rows...`);
+                this.state.escalations = [];
+                let escalationCount = 0;
+
+                emailRows.forEach((email, idx) => {
+                    const detection = this.detectEscalation(email);
+
+                    if (detection.isEscalation) {
+                        const vertical = this.detectVertical(email.subject || '', email.body || '');
+                        const owner = this.autoAssignOwner(vertical);
+                        const createdTime = new Date(email.sent_at || new Date());
+                        const slaHours = this.VERTICAL_SLA[vertical] || 48;
+                        const slaTime = new Date(createdTime.getTime() + slaHours * 60 * 60 * 1000);
+
+                        this.state.escalations.push({
+                            id: email.email_id || `EMAIL-${String(idx).padStart(4, '0')}`,
+                            account: this.COMPANY_NAMES[Math.floor(Math.random() * this.COMPANY_NAMES.length)],
+                            subject: email.subject || 'No subject',
+                            body: email.body || '',
+                            priority: detection.priority,
+                            status: 'Ongoing',
+                            owner: owner,
+                            vertical: vertical,
+                            createdAt: createdTime,
+                            slaTime: slaTime,
+                            slaHours: slaHours,
+                            score: detection.score,
+                            resolvedAt: null,
+                            lastUpdated: createdTime,
+                            history: [
+                                { timestamp: createdTime, type: 'created', data: { priority: detection.priority, vertical, owner } }
+                            ],
+                            notes: []
+                        });
+
+                        escalationCount++;
+                    }
+                });
+
+                this.log(`Detected ${escalationCount} escalations (${((escalationCount / emailRows.length) * 100).toFixed(1)}% of emails)`);
+
+                // Save to localStorage
+                this.saveToStorage();
+                this.updateDataStatus();
+                this.render();
+            },
+
+            saveToStorage() {
+                try {
+                    const data = this.state.escalations.map(e => ({
+                        ...e,
+                        createdAt: e.createdAt.toISOString(),
+                        slaTime: e.slaTime.toISOString(),
+                        resolvedAt: e.resolvedAt ? e.resolvedAt.toISOString() : null,
+                        lastUpdated: e.lastUpdated.toISOString(),
+                        history: e.history.map(h => ({ ...h, timestamp: h.timestamp.toISOString() }))
+                    }));
+                    localStorage.setItem('plum_escalations', JSON.stringify(data));
+                    this.log(`Saved ${this.state.escalations.length} escalations to localStorage`);
+                } catch (err) {
+                    this.log(`Error saving to storage: ${err.message}`, 'error');
+                }
+            },
+
+            loadFromStorage() {
+                try {
+                    const stored = localStorage.getItem('plum_escalations');
+                    if (stored) {
+                        const data = JSON.parse(stored);
+                        this.state.escalations = data.map(e => ({
+                            ...e,
+                            createdAt: new Date(e.createdAt),
+                            slaTime: new Date(e.slaTime),
+                            resolvedAt: e.resolvedAt ? new Date(e.resolvedAt) : null,
+                            lastUpdated: new Date(e.lastUpdated),
+                            history: e.history.map(h => ({ ...h, timestamp: new Date(h.timestamp) }))
+                        }));
+                        this.log(`Loaded ${this.state.escalations.length} escalations from localStorage`);
+                    } else {
+                        this.log('No data in localStorage');
+                    }
+                } catch (err) {
+                    this.log(`Error loading from storage: ${err.message}`, 'error');
+                    this.state.escalations = [];
+                }
+            },
+
+            updateDataStatus() {
+                const statusBadge = document.getElementById('dataStatus');
+                if (statusBadge) {
+                    if (this.state.escalations.length === 0) {
+                        statusBadge.textContent = 'No Data';
+                        statusBadge.style.color = 'var(--text-secondary)';
+                        statusBadge.style.borderColor = 'var(--text-secondary)';
+                        statusBadge.style.background = 'transparent';
+                    } else {
+                        statusBadge.innerHTML = '● Data Loaded';
+                        statusBadge.style.color = 'var(--success-green)';
+                    }
+                }
+            },
+
+            // ===== GOOGLE SHEETS SYNC =====
+            async syncFromGoogleSheets() {
+                if (this.state.syncInProgress) {
+                    this.log('Sync already in progress, skipping');
+                    return;
+                }
+
+                this.state.syncInProgress = true;
+                const startTime = Date.now();
+
+                try {
+                    this.log('Fetching data from Google Sheets...');
+                    const response = await fetch(this.state.googleSheetUrl);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: Failed to fetch Google Sheet`);
+                    }
+
+                    const csvContent = await response.text();
+                    const emailRows = this.parseCSV(csvContent);
+
+                    if (emailRows.length === 0) {
+                        this.log('No new data found in Google Sheet', 'warn');
+                        this.state.syncError = null;
+                    } else {
+                        const prevCount = this.state.escalations.length;
+                        this.processNewEmails(emailRows);
+                        const newCount = this.state.escalations.length - prevCount;
+
+                        this.log(`✓ Sync complete: ${emailRows.length} emails, +${newCount} new escalations`);
+                        this.state.syncError = null;
+                    }
+                } catch (err) {
+                    this.log(`Sync error: ${err.message}`, 'error');
+                    this.state.syncError = err.message;
+                }
+
+                // Update sync time
+                const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+                this.state.lastSyncTime = new Date();
+                this.updateSyncStatus();
+                this.updateDataStatus();
+                this.render();
+                this.state.syncInProgress = false;
+
+                this.log(`Sync completed in ${duration}s`);
+            },
+
+            processNewEmails(emailRows) {
+                this.log(`Processing ${emailRows.length} emails for escalations...`);
+                let newEscalations = 0;
+
+                emailRows.forEach((email, idx) => {
+                    // Create unique ID for duplicate detection
+                    const emailHash = `${email.subject || ''}-${email.sent_at || ''}`;
+
+                    // Skip if already processed
+                    if (this.state.processedEmails.has(emailHash)) {
+                        return;
+                    }
+
+                    const detection = this.detectEscalation(email);
+
+                    if (detection.isEscalation) {
+                        // Check if escalation already exists
+                        const existingId = `EMAIL-${emailHash.substring(0, 8)}`;
+                        if (this.state.escalations.some(e => e.id === existingId)) {
+                            return;
+                        }
+
+                        const vertical = this.detectVertical(email.subject || '', email.body || '');
+                        const owner = this.autoAssignOwner(vertical);
+                        const createdTime = new Date(email.sent_at || new Date());
+                        const slaHours = this.VERTICAL_SLA[vertical] || 48;
+                        const slaTime = new Date(createdTime.getTime() + slaHours * 60 * 60 * 1000);
+
+                        this.state.escalations.push({
+                            id: existingId,
+                            account: this.COMPANY_NAMES[Math.floor(Math.random() * this.COMPANY_NAMES.length)],
+                            subject: email.subject || 'No subject',
+                            body: email.body || '',
+                            priority: detection.priority,
+                            status: 'Ongoing',
+                            owner: owner,
+                            vertical: vertical,
+                            createdAt: createdTime,
+                            slaTime: slaTime,
+                            slaHours: slaHours,
+                            score: detection.score,
+                            resolvedAt: null,
+                            lastUpdated: createdTime,
+                            history: [
+                                { timestamp: createdTime, type: 'created', data: { priority: detection.priority, vertical, owner } }
+                            ],
+                            notes: []
+                        });
+
+                        this.state.processedEmails.add(emailHash);
+                        newEscalations++;
+                    }
+                });
+
+                this.log(`Detected ${newEscalations} new escalations`);
+                this.saveToStorage();
+            },
+
+            updateSyncStatus() {
+                const syncBadge = document.getElementById('syncBadge');
+                const lastSynced = document.getElementById('lastSynced');
+
+                if (!syncBadge || !lastSynced) return;
+
+                if (this.state.syncError) {
+                    syncBadge.innerHTML = `<span style="color: var(--danger-red); font-size: 0.8rem; font-weight: 600;">⚠ ${this.state.syncError}</span>`;
+                    lastSynced.textContent = '❌ Sync failed';
+                } else if (this.state.lastSyncTime) {
+                    const now = new Date();
+                    const diffMs = now - this.state.lastSyncTime;
+                    const diffSecs = Math.floor(diffMs / 1000);
+                    const diffMins = Math.floor(diffSecs / 60);
+
+                    let timeStr = '';
+                    if (diffSecs < 60) {
+                        timeStr = `${diffSecs}s ago`;
+                    } else if (diffMins < 60) {
+                        timeStr = `${diffMins}m ago`;
+                    } else {
+                        timeStr = new Date(this.state.lastSyncTime).toLocaleTimeString();
+                    }
+
+                    lastSynced.textContent = timeStr;
+                    syncBadge.innerHTML = '<span style="color: var(--success-green); font-size: 0.8rem; font-weight: 600;">● Live</span>';
+                } else {
+                    lastSynced.textContent = 'Initializing...';
+                    syncBadge.innerHTML = '<span style="color: var(--accent-blue); font-size: 0.8rem;">⟳ Syncing...</span>';
+                }
+            },
+
+            // ===== METRICS =====
+            getMetrics() {
+                const data = this.state.escalations;
+                return {
+                    total: data.length,
+                    p1: data.filter(e => e.priority === 'P1').length,
+                    p2: data.filter(e => e.priority === 'P2').length,
+                    p3: data.filter(e => e.priority === 'P3').length,
+                    resolved: data.filter(e => e.status === 'Resolved').length,
+                    ongoing: data.filter(e => e.status === 'Ongoing').length,
+                    blocked: data.filter(e => e.status === 'Blocked').length,
+                    unassigned: data.filter(e => e.owner === 'Unassigned').length
+                };
+            },
+
+            getOwnerMetrics(ownerName) {
+                const ownerEscs = this.state.escalations.filter(e => e.owner === ownerName);
+                const total = ownerEscs.length;
+                const resolved = ownerEscs.filter(e => e.status === 'Resolved').length;
+                const pending = total - resolved;
+
+                let totalTAT = 0;
+                ownerEscs.forEach(e => {
+                    const end = e.resolvedAt || new Date();
+                    totalTAT += (end - e.createdAt) / (1000 * 60 * 60);
+                });
+                const avgTAT = total > 0 ? totalTAT / total : 0;
+
+                const emp = this.EMPLOYEES.find(e => e.name === ownerName);
+                const capacity = emp ? emp.capacity : 100;
+                const workloadPercent = Math.min(100, Math.round((total / capacity) * 100));
+
+                return { total, resolved, pending, avgTAT, workloadPercent };
+            },
+
+            // ===== FILTERING =====
+            getFilteredEscalations() {
+                return this.state.escalations.filter(e => {
+                    let matchFilter = true;
+                    if (this.state.filter === 'p1') matchFilter = e.priority === 'P1';
+                    else if (this.state.filter === 'p2') matchFilter = e.priority === 'P2';
+                    else if (this.state.filter === 'ongoing') matchFilter = e.status === 'Ongoing';
+                    else if (this.state.filter === 'resolved') matchFilter = e.status === 'Resolved';
+
+                    let matchSearch = true;
+                    if (this.state.search) {
+                        const q = this.state.search.toLowerCase();
+                        matchSearch = e.account.toLowerCase().includes(q) ||
+                                    e.subject.toLowerCase().includes(q) ||
+                                    e.owner.toLowerCase().includes(q);
+                    }
+
+                    return matchFilter && matchSearch;
+                });
+            },
+
+            // ===== RENDERING =====
+            render() {
+                if (this.state.currentTab === 'dashboard') {
+                    this.renderDashboard();
+                } else if (this.state.currentTab === 'escalations') {
+                    this.renderEscalations();
+                } else if (this.state.currentTab === 'owners') {
+                    this.renderOwners();
+                } else if (this.state.currentTab === 'analytics') {
+                    this.renderAnalytics();
+                }
+            },
+
+            calculateDashboardMetrics() {
+                const metrics = this.getMetrics();
+                const now = new Date();
+
+                // Avg response time (time from created to now/resolved)
+                let totalResponseTime = 0;
+                let responseCount = 0;
+                this.state.escalations.forEach(e => {
+                    const endTime = e.resolvedAt || now;
+                    totalResponseTime += (endTime - e.createdAt) / (1000 * 60 * 60);
+                    responseCount++;
+                });
+                const avgResponseTime = responseCount > 0 ? totalResponseTime / responseCount : 0;
+
+                // Avg resolution time (only resolved)
+                let totalResolutionTime = 0;
+                let resolvedCount = 0;
+                this.state.escalations.filter(e => e.resolvedAt).forEach(e => {
+                    totalResolutionTime += (e.resolvedAt - e.createdAt) / (1000 * 60 * 60);
+                    resolvedCount++;
+                });
+                const avgResolutionTime = resolvedCount > 0 ? totalResolutionTime / resolvedCount : 0;
+
+                // SLA breaches
+                const slaBreaches = this.state.escalations.filter(e => {
+                    const now = new Date();
+                    return e.status !== 'Resolved' && e.slaTime < now;
+                }).length;
+
+                // Incident rate (%)
+                const incidentRate = metrics.total > 0 ? Math.round((metrics.p1 / metrics.total) * 100) : 0;
+
+                // Breakdown by vertical
+                const byVertical = {};
+                this.state.escalations.forEach(e => {
+                    if (!byVertical[e.vertical]) {
+                        byVertical[e.vertical] = { count: 0, p1: 0, p2: 0, p3: 0 };
+                    }
+                    byVertical[e.vertical].count++;
+                    if (e.priority === 'P1') byVertical[e.vertical].p1++;
+                    else if (e.priority === 'P2') byVertical[e.vertical].p2++;
+                    else byVertical[e.vertical].p3++;
+                });
+
+                return {
+                    ...metrics,
+                    avgResponseTime,
+                    avgResolutionTime,
+                    slaBreaches,
+                    incidentRate,
+                    byVertical,
+                    totalAssigned: metrics.total - metrics.unassigned
+                };
+            },
+
+            renderDashboard() {
+                const container = document.getElementById('dashboardContent');
+                if (!container) return;
+
+                const data = this.calculateDashboardMetrics();
+
+                if (data.total === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="padding: 5rem 2rem;">
+                            <div class="empty-state-icon">📭</div>
+                            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Waiting for Google Sheets Data</h2>
+                            <p style="margin-bottom: 2rem;">The dashboard is live and syncing from Google Sheets every 45 seconds</p>
+                            <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 2rem;">
+                                Last sync: ${this.state.lastSyncTime ? new Date(this.state.lastSyncTime).toLocaleTimeString() : 'Never'}
+                            </div>
+                            <button class="btn btn-primary" onclick="app.syncFromGoogleSheets()" style="padding: 0.75rem 2rem; font-size: 1rem;">🔄 Sync Now</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // KEY METRICS (VP Decision-Making)
+                const keyMetricsHtml = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                        <!-- Total Escalations -->
+                        <div style="background: rgba(15, 20, 25, 0.4); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 0.5rem;">TOTAL ESCALATIONS</div>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">${data.total}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${data.ongoing} ongoing</div>
+                        </div>
+
+                        <!-- P1 Critical (Highlighted) -->
+                        <div style="background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger-red); border-radius: 12px; padding: 1.5rem;">
+                            <div style="font-size: 0.85rem; color: var(--danger-red); font-weight: 700; margin-bottom: 0.5rem;">🔴 P1 CRITICAL</div>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--danger-red); margin-bottom: 0.5rem;">${data.p1}</div>
+                            <div style="font-size: 0.8rem; color: var(--danger-red); opacity: 0.8;">Needs immediate action</div>
+                        </div>
+
+                        <!-- Avg Response Time -->
+                        <div style="background: rgba(15, 20, 25, 0.4); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 0.5rem;">AVG RESPONSE TIME</div>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">${Math.round(data.avgResponseTime)}h</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">From creation</div>
+                        </div>
+
+                        <!-- Avg Resolution Time -->
+                        <div style="background: rgba(15, 20, 25, 0.4); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 0.5rem;">AVG RESOLUTION TIME</div>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">${Math.round(data.avgResolutionTime)}h</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">For resolved tickets</div>
+                        </div>
+
+                        <!-- Resolved Rate -->
+                        <div style="background: rgba(15, 20, 25, 0.4); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 0.5rem;">RESOLUTION RATE</div>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--success-green); margin-bottom: 0.5rem;">${Math.round((data.resolved / data.total) * 100)}%</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${data.resolved} resolved</div>
+                        </div>
+                    </div>
+                `;
+
+                // BREAKDOWN & INSIGHTS
+                const verticalRows = Object.entries(data.byVertical)
+                    .sort((a, b) => b[1].count - a[1].count)
+                    .map(([vertical, counts]) => {
+                        const pctOfTotal = Math.round((counts.count / data.total) * 100);
+                        return `
+                            <tr>
+                                <td style="font-weight: 600; color: var(--text-primary);">${vertical}</td>
+                                <td style="text-align: center;">${counts.count}</td>
+                                <td style="text-align: center; color: var(--danger-red); font-weight: 600;">${counts.p1}</td>
+                                <td style="text-align: center; color: var(--warning-orange); font-weight: 600;">${counts.p2}</td>
+                                <td style="text-align: center;">${counts.p3}</td>
+                                <td style="text-align: right; color: var(--accent-blue); font-weight: 600;">${pctOfTotal}%</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                const breakdownHtml = `
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Escalation Breakdown by Vertical</h3>
+                        <div style="background: rgba(15, 20, 25, 0.4); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border); background: rgba(51, 65, 85, 0.3);">
+                                        <th style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600; font-size: 0.8rem;">VERTICAL</th>
+                                        <th style="padding: 1rem; text-align: center; color: var(--text-secondary); font-weight: 600; font-size: 0.8rem;">TOTAL</th>
+                                        <th style="padding: 1rem; text-align: center; color: var(--danger-red); font-weight: 600; font-size: 0.8rem;">P1</th>
+                                        <th style="padding: 1rem; text-align: center; color: var(--warning-orange); font-weight: 600; font-size: 0.8rem;">P2</th>
+                                        <th style="padding: 1rem; text-align: center; color: var(--text-secondary); font-weight: 600; font-size: 0.8rem;">P3</th>
+                                        <th style="padding: 1rem; text-align: right; color: var(--accent-blue); font-weight: 600; font-size: 0.8rem;">% OF TOTAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${verticalRows}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                // ACTIONABLE INSIGHTS
+                const insights = [];
+                if (data.p1 > 0) insights.push(`${data.p1} critical escalation${data.p1 > 1 ? 's' : ''} need immediate action`);
+                if (data.unassigned > 0) insights.push(`${data.unassigned} ticket${data.unassigned > 1 ? 's' : ''} unassigned`);
+                if (data.slaBreaches > 0) insights.push(`${data.slaBreaches} ticket${data.slaBreaches > 1 ? 's' : ''} breached SLA`);
+                if (data.ongoing > data.resolved) insights.push(`${data.ongoing} tickets still in progress`);
+
+                const insightsHtml = insights.length > 0 ? `
+                    <div style="background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-blue); border-radius: 12px; padding: 1.5rem;">
+                        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent-blue);">⚡ Key Insights</h3>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            ${insights.map(insight => `<li style="padding: 0.5rem 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;"><span style="color: var(--accent-blue);">▸</span> ${insight}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : '';
+
+                container.innerHTML = keyMetricsHtml + breakdownHtml + insightsHtml;
+            },
+
+            renderCharts() {
+                this.renderLineChart();
+                this.renderBarChart();
+            },
+
+            renderLineChart() {
+                const byDate = {};
+                this.state.escalations.forEach(e => {
+                    const dateStr = e.createdAt.toISOString().split('T')[0];
+                    if (!byDate[dateStr]) {
+                        byDate[dateStr] = { date: dateStr, count: 0, p1: 0, p2: 0, p3: 0 };
+                    }
+                    byDate[dateStr].count++;
+                    if (e.priority === 'P1') byDate[dateStr].p1++;
+                    else if (e.priority === 'P2') byDate[dateStr].p2++;
+                    else byDate[dateStr].p3++;
+                });
+
+                const sortedDates = Object.keys(byDate).sort();
+                const last30 = sortedDates.slice(Math.max(0, sortedDates.length - 30));
+                const data = last30.map(d => byDate[d]);
+
+                const canvas = document.getElementById('lineChart');
+                if (!canvas) return;
+
+                if (this.chartInstances?.line) {
+                    this.chartInstances.line.destroy();
+                }
+
+                if (!this.chartInstances) {
+                    this.chartInstances = {};
+                }
+
+                this.chartInstances.line = new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.date),
+                        datasets: [
+                            { label: 'P1', data: data.map(d => d.p1), borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.4 },
+                            { label: 'P2', data: data.map(d => d.p2), borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', tension: 0.4 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { labels: { color: '#f1f5f9' } } },
+                        scales: {
+                            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(51, 65, 85, 0.3)' } },
+                            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(51, 65, 85, 0.3)' } }
+                        }
+                    }
+                });
+            },
+
+            renderBarChart() {
+                const metrics = this.getMetrics();
+                const canvas = document.getElementById('barChart');
+                if (!canvas) return;
+
+                if (this.chartInstances?.bar) {
+                    this.chartInstances.bar.destroy();
+                }
+
+                if (!this.chartInstances) {
+                    this.chartInstances = {};
+                }
+
+                this.chartInstances.bar = new Chart(canvas.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['P1', 'P2', 'P3'],
+                        datasets: [{ label: 'Count', data: [metrics.p1, metrics.p2, metrics.p3], backgroundColor: ['#ef4444', '#f97316', '#64748b'] }]
+                    },
+                    options: {
+                        indexAxis: 'x',
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { labels: { color: '#f1f5f9' } } },
+                        scales: {
+                            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(51, 65, 85, 0.3)' } },
+                            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(51, 65, 85, 0.3)' } }
+                        }
+                    }
+                });
+            },
+
+            renderEscalations() {
+                const filtered = this.getFilteredEscalations();
+                const tbody = document.getElementById('tableBody');
+                if (!tbody) return;
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">📭</div><p>No escalations match filter</p></td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = filtered.map(e => {
+                    return `
+                        <tr>
+                            <td>${e.account}</td>
+                            <td><div class="issue-summary"><div class="issue-title">${e.subject.substring(0, 40)}</div></div></td>
+                            <td><select class="priority-dropdown" onchange="app.updatePriority('${e.id}', this.value)">
+                                <option value="P1" ${e.priority === 'P1' ? 'selected' : ''}>P1</option>
+                                <option value="P2" ${e.priority === 'P2' ? 'selected' : ''}>P2</option>
+                                <option value="P3" ${e.priority === 'P3' ? 'selected' : ''}>P3</option>
+                            </select></td>
+                            <td><select class="status-dropdown" onchange="app.updateStatus('${e.id}', this.value)">
+                                <option value="Ongoing" ${e.status === 'Ongoing' ? 'selected' : ''}>Ongoing</option>
+                                <option value="Resolved" ${e.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                                <option value="Blocked" ${e.status === 'Blocked' ? 'selected' : ''}>Blocked</option>
+                            </select></td>
+                            <td><select class="owner-dropdown" onchange="app.updateOwner('${e.id}', this.value)">
+                                <option value="${e.owner}" selected>${e.owner}</option>
+                                ${this.EMPLOYEES.map(emp => `<option value="${emp.name}">${emp.name}</option>`).join('')}
+                            </select></td>
+                            <td>${this.getRelativeTime(e.createdAt)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+
+            renderOwners() {
+                const container = document.getElementById('ownersContent');
+                if (!container) return;
+
+                if (this.state.escalations.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div><p>Load data to see team metrics</p></div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="owners-grid">
+                        ${this.EMPLOYEES.map(emp => {
+                            const metrics = this.getOwnerMetrics(emp.name);
+                            const workloadClass = metrics.workloadPercent > 80 ? 'high' : '';
+
+                            return `
+                                <div class="owner-card">
+                                    <div class="owner-name">${emp.name}</div>
+                                    <div class="owner-verticals">
+                                        ${emp.verticals.map(v => `<div class="vertical-badge">${v}</div>`).join('')}
+                                    </div>
+                                    <div class="owner-stats">
+                                        <div class="stat">
+                                            <div class="stat-label">Assigned</div>
+                                            <div class="stat-value">${metrics.total}</div>
+                                        </div>
+                                        <div class="stat">
+                                            <div class="stat-label">Resolved</div>
+                                            <div class="stat-value">${metrics.resolved}</div>
+                                        </div>
+                                        <div class="stat">
+                                            <div class="stat-label">Pending</div>
+                                            <div class="stat-value">${metrics.pending}</div>
+                                        </div>
+                                        <div class="stat">
+                                            <div class="stat-label">Avg TAT</div>
+                                            <div class="stat-value">${Math.round(metrics.avgTAT)}h</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="workload-bar">
+                                            <div class="workload-fill ${workloadClass}" style="width: ${metrics.workloadPercent}%"></div>
+                                        </div>
+                                        <div class="workload-label">Workload: ${metrics.workloadPercent}%</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            },
+
+            renderAnalytics() {
+                const container = document.getElementById('analyticsContent');
+                if (!container) return;
+
+                const metrics = this.getMetrics();
+
+                container.innerHTML = `
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">📊 Total</div>
+                            <div class="metric-value">${metrics.total}</div>
+                        </div>
+                        <div class="metric-card critical">
+                            <div class="metric-label">🔴 P1</div>
+                            <div class="metric-value">${metrics.p1}</div>
+                        </div>
+                        <div class="metric-card warning">
+                            <div class="metric-label">🟠 P2</div>
+                            <div class="metric-value">${metrics.p2}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">⚪ P3</div>
+                            <div class="metric-value">${metrics.p3}</div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <div class="chart-title">Trend</div>
+                            <canvas id="analyticsTrendChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-title">Priority Breakdown</div>
+                            <canvas id="analyticsPriorityChart"></canvas>
+                        </div>
+                    </div>
+                `;
+
+                this.renderCharts();
+            },
+
+            getRelativeTime(date) {
+                const now = new Date();
+                const diff = Math.floor((now - date) / 1000);
+                if (diff < 60) return 'just now';
+                if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+                if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+                return Math.floor(diff / 86400) + 'd ago';
+            },
+
+            // ===== STATE UPDATES =====
+            updateStatus(id, status) {
+                const esc = this.state.escalations.find(e => e.id === id);
+                if (esc) {
+                    esc.status = status;
+                    if (status === 'Resolved') esc.resolvedAt = new Date();
+                    esc.lastUpdated = new Date();
+                    esc.history.push({ timestamp: new Date(), type: 'status_changed', data: { to: status } });
+                    this.saveToStorage();
+                    this.render();
+                    this.log(`Updated ${id}: status = ${status}`);
+                }
+            },
+
+            updateOwner(id, owner) {
+                const esc = this.state.escalations.find(e => e.id === id);
+                if (esc) {
+                    esc.owner = owner;
+                    esc.lastUpdated = new Date();
+                    esc.history.push({ timestamp: new Date(), type: 'assigned', data: { to: owner } });
+                    this.saveToStorage();
+                    this.render();
+                    this.log(`Updated ${id}: owner = ${owner}`);
+                }
+            },
+
+            updatePriority(id, priority) {
+                const esc = this.state.escalations.find(e => e.id === id);
+                if (esc) {
+                    esc.priority = priority;
+                    esc.lastUpdated = new Date();
+                    esc.history.push({ timestamp: new Date(), type: 'priority_changed', data: { to: priority } });
+                    this.saveToStorage();
+                    this.render();
+                    this.log(`Updated ${id}: priority = ${priority}`);
+                }
+            },
+
+            // ===== TAB SWITCHING =====
+            switchTab(tabName) {
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                const tabElement = document.getElementById(`${tabName}-tab`);
+                const btnElement = document.querySelector(`[data-tab="${tabName}"]`);
+                if (tabElement) tabElement.classList.add('active');
+                if (btnElement) btnElement.classList.add('active');
+                this.state.currentTab = tabName;
+                localStorage.setItem('plum_activeTab', tabName);
+                this.render();
+            },
+
+            // ===== MODAL MANAGEMENT =====
+            openModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('active');
+                    if (modalId === 'uploadModal') {
+                        document.getElementById('uploadMessage').innerHTML = '';
+                        document.getElementById('uploadValidationLog').style.display = 'none';
+                    }
+                }
+            },
+
+            closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            }
+        };
+
+        // ===== INIT =====
+        window.addEventListener('load', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
