@@ -100,15 +100,89 @@
             content: '●';
         }
 
-        /* TABS */
-        .tabs-container {
+        /* LAYOUT: SIDEBAR + CONTENT */
+        body {
             display: flex;
+            flex-direction: column;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: rgba(10, 15, 23, 0.95);
+            border-right: 1px solid var(--border);
+            padding: 2rem 0;
+            overflow-y: auto;
+            position: fixed;
+            height: calc(100vh - 80px);
+            top: 80px;
+            left: 0;
+            z-index: 900;
+        }
+
+        .sidebar-logo {
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
             gap: 0.5rem;
-            border-bottom: 1px solid var(--border);
-            padding: 0 2rem;
-            max-width: 1600px;
-            margin: 0 auto;
-            background: rgba(15, 20, 25, 0.5);
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0 1rem;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .sidebar-nav-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .sidebar-nav-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+            border-left: 3px solid var(--accent-blue);
+            padding-left: calc(1rem - 3px);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            overflow-y: auto;
+        }
+
+        /* TABS (Hidden, kept for compatibility) */
+        .tabs-container {
+            display: none;
         }
 
         .tab-button {
@@ -742,8 +816,22 @@
         </div>
     </header>
 
-    <!-- TABS -->
-    <div class="tabs-container">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-logo">🚨 Plum</div>
+        <nav class="sidebar-nav">
+            <button class="sidebar-nav-item active" data-tab="dashboard">📊 Dashboard</button>
+            <button class="sidebar-nav-item" data-tab="escalations">⚠️ Escalations</button>
+            <button class="sidebar-nav-item" data-tab="owners">👥 Team</button>
+            <button class="sidebar-nav-item" data-tab="analytics">📈 Analytics</button>
+        </nav>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
+        <div class="main-content">
+            <!-- TABS (Hidden) -->
+            <div class="tabs-container">
         <button class="tab-button active" data-tab="dashboard">📊 Dashboard</button>
         <button class="tab-button" data-tab="escalations">⚠️ Escalations</button>
         <button class="tab-button" data-tab="owners">👥 Owners</button>
@@ -821,6 +909,8 @@
     <div class="tab-content" id="analytics-tab">
         <div class="container">
             <div id="analyticsContent"></div>
+        </div>
+    </div>
         </div>
     </div>
 
@@ -906,6 +996,15 @@
                 // Tab buttons
                 document.querySelectorAll('.tab-button').forEach(btn => {
                     btn.addEventListener('click', (e) => {
+                        this.switchTab(e.target.dataset.tab);
+                    });
+                });
+
+                // Sidebar nav buttons
+                document.querySelectorAll('.sidebar-nav-item').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
                         this.switchTab(e.target.dataset.tab);
                     });
                 });
@@ -1824,10 +1923,11 @@
             switchTab(tabName) {
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
                 const tabElement = document.getElementById(`${tabName}-tab`);
-                const btnElement = document.querySelector(`[data-tab="${tabName}"]`);
+                const btnElements = document.querySelectorAll(`[data-tab="${tabName}"]`);
                 if (tabElement) tabElement.classList.add('active');
-                if (btnElement) btnElement.classList.add('active');
+                btnElements.forEach(btn => btn.classList.add('active'));
                 this.state.currentTab = tabName;
                 localStorage.setItem('plum_activeTab', tabName);
                 this.render();
