@@ -80,6 +80,8 @@ export default function Dashboard() {
     : quickFilter === 'custom' ? `${activeDates.length} of ${allDates.length} weeks selected`
     : `${activeDates.length} weeks (${activeDates[0]?.slice(5)} → ${activeDates[activeDates.length - 1]?.slice(5)})`
 
+  const avgCtr = shown.length > 0 ? shown.reduce((sum, c) => sum + c.ctr, 0) / shown.length : 0
+
   const getInsight = async () => {
     setLoading(true)
     const s = shown.map(c => `${c.channel}: Revenue ${fmt.inr(c.revenue)}, ROAS ${c.roas.toFixed(2)}x, CTR ${fmt.pct(c.ctr)}, CVR ${fmt.pct(c.cvr)}`).join('\n')
@@ -140,19 +142,19 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14 }} className="kpi-row">
-        <KPICard label="Total Revenue"  value={fmt.inr(vt.revenue)} sub="selected period" trend="up" />
+      {/* Row 1 — KPI Summary Bar (full width) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14 }} className="kpi-row">
         <KPICard label="Total Spend"    value={fmt.inr(vt.spend)}   sub="budget utilised" trend="flat" />
+        <KPICard label="Total Revenue"  value={fmt.inr(vt.revenue)} sub="selected period" trend="up" />
         <KPICard label="Blended ROAS"   value={fmt.x(vRoas)}        sub="across channels" trend={vRoas >= 4 ? 'up' : 'down'} />
         <KPICard label="Total Orders"   value={fmt.num(vt.orders)}  sub="conversions"     trend="up" />
-        <KPICard label="Cost Per Order" value={'₹' + vCpo}          sub="efficiency"      trend={+vCpo <= 350 ? 'up' : 'down'} />
+        <KPICard label="Avg CTR"        value={fmt.pct(avgCtr)}     sub="across channels" trend={avgCtr >= 2 ? 'up' : avgCtr >= 1.5 ? 'flat' : 'down'} />
       </div>
 
       <OpportunityCards opps={opps} />
 
-      {/* Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="chart-row">
+      {/* Row 2 — Two-column layout (60/40 split) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '60fr 40fr', gap: 24 }} className="chart-row">
         <div className="card fade-up">
           <div style={{ fontWeight: 600, marginBottom: 16 }}>Revenue & Spend Trend</div>
           <LineChart data={byDate as unknown as Record<string, unknown>[]}
